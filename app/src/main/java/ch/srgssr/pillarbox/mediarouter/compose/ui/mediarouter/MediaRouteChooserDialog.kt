@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.AlertDialog
@@ -33,11 +36,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
@@ -52,19 +57,10 @@ fun MediaRouteChooserDialog(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
 ) {
-    // START Debug
-    var chooserState by remember { mutableStateOf(MediaRouterChooserDialogState.FINDING_DEVICES) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(5.seconds)
-
-            chooserState = MediaRouterChooserDialogState.entries
-                .get((chooserState.ordinal + 1) % MediaRouterChooserDialogState.entries.size)
-        }
-    }
-    // END Debug
-
     var refreshRoutes by remember { mutableIntStateOf(0) }
+    var chooserState by remember {
+        mutableStateOf(MediaRouterChooserDialogState.FINDING_DEVICES)
+    }
 
     val context = LocalContext.current
     val callback = remember {
@@ -123,6 +119,24 @@ fun MediaRouteChooserDialog(
 
         onDispose {
             context.unregisterReceiver(receiver)
+        }
+    }
+
+    LaunchedEffect(routes) {
+        if (routes.isEmpty()) {
+            chooserState = MediaRouterChooserDialogState.FINDING_DEVICES
+
+            delay(5.seconds)
+
+            chooserState = MediaRouterChooserDialogState.NO_DEVICES_NO_WIFI_HINT
+
+            delay(15.seconds)
+
+            chooserState = MediaRouterChooserDialogState.NO_ROUTES
+
+            router.removeCallback(callback)
+        } else {
+            chooserState = MediaRouterChooserDialogState.SHOWING_ROUTES
         }
     }
 
@@ -261,14 +275,34 @@ private fun ColumnScope.ShowingRoutes(
                         null
                     },
                 leadingContent = {
-                    Icon(
-                        imageVector = Icons.Default.Tv,
-                        contentDescription = null,
-                    )
+                    val context = LocalContext.current
+                    val drawable = remember(route.iconUri) {
+                        route.iconUri
+                            ?.let { context.contentResolver.openInputStream(it) }
+                            ?.use { Drawable.createFromStream(it, null) }
+                    }
+
+                    if (drawable != null) {
+                        Icon(
+                            bitmap = drawable.toBitmap().asImageBitmap(),
+                            contentDescription = null,
+                        )
+                    } else {
+                        val defaultIcon = when (route.deviceType) {
+                            RouteInfo.DEVICE_TYPE_TV -> Icons.Default.Tv
+                            RouteInfo.DEVICE_TYPE_REMOTE_SPEAKER -> Icons.Default.Speaker
+                            else -> Icons.Default.Cast
+                        }
+
+                        Icon(
+                            imageVector = defaultIcon,
+                            contentDescription = null,
+                        )
+                    }
                 },
                 colors = ListItemDefaults.colors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                )
+                ),
             )
         }
     }
