@@ -1,6 +1,6 @@
 [versions]
 android-gradle-plugin = "8.8.0"
-androidx-activity = "1.9.3"
+androidx-activity = "1.10.0"
 androidx-compose = "2024.12.01"
 androidx-fragment = "1.8.5"
 androidx-mediarouter = "1.7.0"
