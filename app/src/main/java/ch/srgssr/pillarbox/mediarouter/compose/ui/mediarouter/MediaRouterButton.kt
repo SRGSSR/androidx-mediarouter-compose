@@ -62,14 +62,14 @@ fun MediaRouterButton(
 
             override fun onProviderRemoved(
                 router: MediaRouter,
-                provider: MediaRouter.ProviderInfo
+                provider: MediaRouter.ProviderInfo,
             ) {
                 refreshRoutes++
             }
 
             override fun onProviderChanged(
                 router: MediaRouter,
-                provider: MediaRouter.ProviderInfo
+                provider: MediaRouter.ProviderInfo,
             ) {
                 refreshRoutes++
             }

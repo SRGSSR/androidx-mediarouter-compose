@@ -159,7 +159,7 @@ fun MediaRouteChooserDialog(
                 onRouteClick = { route ->
                     route.select()
                     onDismissRequest()
-                }
+                },
             )
         },
     )
