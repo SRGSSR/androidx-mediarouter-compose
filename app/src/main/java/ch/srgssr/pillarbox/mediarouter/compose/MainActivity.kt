@@ -9,11 +9,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
@@ -43,40 +49,68 @@ class MainActivity : FragmentActivity() {
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = "Compose",
-                                style = MaterialTheme.typography.titleLarge,
-                            )
+                        MediaRouteButtonType(
+                            label = "Compose",
+                            button = {
+                                MediaRouterButton(
+                                    routeSelector = routeSelector,
+                                )
+                            },
+                        )
 
-                            MediaRouterButton(
-                                routeSelector = routeSelector,
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text(
-                                text = "AppCompat",
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-
-                            AndroidView(
-                                factory = { context ->
-                                    MediaRouteButton(context).apply {
-                                        routeSelector = this@MainActivity.routeSelector
-                                    }
-                                },
-                            )
-                        }
+                        MediaRouteButtonType(
+                            label = "AppCompat",
+                            button = {
+                                AndroidView(
+                                    factory = { context ->
+                                        MediaRouteButton(context).apply {
+                                            routeSelector = this@MainActivity.routeSelector
+                                        }
+                                    },
+                                )
+                            },
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MediaRouteButtonType(
+    label: String,
+    modifier: Modifier = Modifier,
+    button: @Composable () -> Unit,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleLarge,
+        )
+
+        button()
+    }
+}
+
+@Preview
+@Composable
+private fun MediaRouteButtonTypePreview() {
+    PillarboxAndroidMediaRouterComposeTheme {
+        MediaRouteButtonType(
+            label = "Type",
+            button = {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.Cast,
+                        contentDescription = null,
+                    )
+                }
+            },
+        )
     }
 }
