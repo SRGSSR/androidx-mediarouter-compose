@@ -333,7 +333,9 @@ fun MediaRouteControllerDialog(
             }
 
             if (isGroupExpanded) {
-                val routes = emptyList<RouteInfo>() // TODO
+                val routes = remember(selectedRoute) {
+                    selectedRoute.memberRoutes
+                }
 
                 LazyColumn(
                     modifier = Modifier
@@ -341,7 +343,49 @@ fun MediaRouteControllerDialog(
                         .padding(top = 16.dp),
                 ) {
                     items(routes) { route ->
-                        // TODO
+                        val isVolumeControlEnabled =
+                            volumeControlEnabled && route.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+                        val volumeRange =
+                            if (isGroupExpanded) 0f..route.volumeMax.toFloat() else 0f..100f
+                        val enabled = route.isEnabled
+
+                        var volume by remember {
+                            mutableFloatStateOf(if (isVolumeControlEnabled) route.volume.toFloat() else 100f)
+                        }
+
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = route.name,
+                                maxLines = 1,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Audiotrack,
+                                    contentDescription = null,
+                                )
+
+                                Slider(
+                                    value = volume,
+                                    onValueChange = {
+                                        if (isVolumeControlEnabled) {
+                                            volume = it
+
+                                            route.requestSetVolume(it.toInt())
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    enabled = enabled,
+                                    valueRange = volumeRange,
+                                )
+                            }
+                        }
                     }
                 }
             }
