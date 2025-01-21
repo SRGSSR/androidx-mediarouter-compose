@@ -34,9 +34,7 @@ fun MediaRouterButton(
 
     val context = LocalContext.current
     val router = remember { MediaRouter.getInstance(context) }
-    val callback = rememberRouterCallback(
-        action = { refreshRoutes++ },
-    )
+    val callback = rememberRouterCallback { refreshRoutes++ }
     val connectionState by remember(refreshRoutes) {
         val selectedRoute = router.selectedRoute
         val isRemote = !selectedRoute.isDefaultRouteOrBluetooth
