@@ -34,47 +34,9 @@ fun MediaRouterButton(
 
     val context = LocalContext.current
     val router = remember { MediaRouter.getInstance(context) }
-    val callback = remember {
-        object : MediaRouter.Callback() {
-            override fun onRouteAdded(router: MediaRouter, route: RouteInfo) {
-                refreshRoutes++
-            }
-
-            override fun onRouteRemoved(router: MediaRouter, route: RouteInfo) {
-                refreshRoutes++
-            }
-
-            override fun onRouteChanged(router: MediaRouter, route: RouteInfo) {
-                refreshRoutes++
-            }
-
-            override fun onRouteSelected(router: MediaRouter, route: RouteInfo, reason: Int) {
-                refreshRoutes++
-            }
-
-            override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
-                refreshRoutes++
-            }
-
-            override fun onProviderAdded(router: MediaRouter, provider: MediaRouter.ProviderInfo) {
-                refreshRoutes++
-            }
-
-            override fun onProviderRemoved(
-                router: MediaRouter,
-                provider: MediaRouter.ProviderInfo,
-            ) {
-                refreshRoutes++
-            }
-
-            override fun onProviderChanged(
-                router: MediaRouter,
-                provider: MediaRouter.ProviderInfo,
-            ) {
-                refreshRoutes++
-            }
-        }
-    }
+    val callback = rememberRouterCallback(
+        action = { refreshRoutes++ },
+    )
     val connectionState by remember(refreshRoutes) {
         val selectedRoute = router.selectedRoute
         val isRemote = !selectedRoute.isDefaultRouteOrBluetooth
@@ -136,10 +98,59 @@ fun MediaRouterButton(
 
 // This is a copy of MediaRouter.RouteInfo.isDefaultOrBluetooth().
 internal val RouteInfo.isDefaultRouteOrBluetooth: Boolean
-    get() = if (isDefault || deviceType == RouteInfo.DEVICE_TYPE_BLUETOOTH_A2DP) {
-        true
-    } else {
-        provider.providerInstance.metadata.packageName == "android" &&
-                supportsControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO) &&
-                !supportsControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
+    get() {
+        return if (isDefault || deviceType == RouteInfo.DEVICE_TYPE_BLUETOOTH_A2DP) {
+            true
+        } else {
+            provider.providerInstance.metadata.packageName == "android" &&
+                    supportsControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO) &&
+                    !supportsControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
+        }
     }
+
+@Composable
+private fun rememberRouterCallback(
+    action: () -> Unit,
+): MediaRouter.Callback {
+    return remember {
+        object : MediaRouter.Callback() {
+            override fun onRouteAdded(router: MediaRouter, route: RouteInfo) {
+                action()
+            }
+
+            override fun onRouteRemoved(router: MediaRouter, route: RouteInfo) {
+                action()
+            }
+
+            override fun onRouteChanged(router: MediaRouter, route: RouteInfo) {
+                action()
+            }
+
+            override fun onRouteSelected(router: MediaRouter, route: RouteInfo, reason: Int) {
+                action()
+            }
+
+            override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
+                action()
+            }
+
+            override fun onProviderAdded(router: MediaRouter, provider: MediaRouter.ProviderInfo) {
+                action()
+            }
+
+            override fun onProviderRemoved(
+                router: MediaRouter,
+                provider: MediaRouter.ProviderInfo,
+            ) {
+                action()
+            }
+
+            override fun onProviderChanged(
+                router: MediaRouter,
+                provider: MediaRouter.ProviderInfo,
+            ) {
+                action()
+            }
+        }
+    }
+}
