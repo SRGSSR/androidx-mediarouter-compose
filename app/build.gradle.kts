@@ -50,5 +50,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.fragment)
     implementation(libs.androidx.mediarouter)
-    implementation(libs.material)
 }
