@@ -67,10 +67,6 @@ fun MediaRouteControllerDialog(
     var description by remember { mutableStateOf<MediaDescriptionCompat?>(null) }
 
     val context = LocalContext.current
-    val selectedRoute = remember { router.selectedRoute }
-    val isGroup = remember(selectedRoute) {
-        selectedRoute.isGroup && selectedRoute.memberRoutes.size > 1
-    }
     val mediaControllerCallback = remember {
         object : MediaControllerCompat.Callback() {
             override fun onSessionDestroyed() {
@@ -80,13 +76,11 @@ fun MediaRouteControllerDialog(
 
             override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
                 playbackState = state
-                // TODO update(false)
             }
 
             override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
                 description = metadata?.description
                 // TODO updateArtIconIfNeeded()
-                // TODO update(false)
             }
         }
     }
@@ -100,7 +94,6 @@ fun MediaRouteControllerDialog(
                 description = metadata?.description
                 playbackState = this.playbackState
                 // TODO updateArtIconIfNeeded()
-                // TODO update(false)
             }
         }
 
@@ -110,285 +103,421 @@ fun MediaRouteControllerDialog(
         }
     }
 
+    ControllerDialog(
+        router = router,
+        volumeControlEnabled = volumeControlEnabled,
+        playbackState = playbackState,
+        mediaController = mediaController,
+        description = description,
+        modifier = modifier,
+        onDismissRequest = onDismissRequest,
+    )
+}
+
+@Composable
+private fun ControllerDialog(
+    router: MediaRouter,
+    volumeControlEnabled: Boolean,
+    playbackState: PlaybackStateCompat?,
+    mediaController: MediaControllerCompat?,
+    description: MediaDescriptionCompat?,
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            TextButton(
-                onClick = {
-                    if (selectedRoute.isSelected) {
-                        router.unselect(MediaRouter.UNSELECT_REASON_STOPPED)
-                    }
-
-                    onDismissRequest()
-                },
-            ) {
-                Text(text = stringResource(R.string.mr_controller_stop_casting))
-            }
+            ConfirmButton(
+                router = router,
+                onDismissRequest = onDismissRequest,
+            )
         },
         modifier = modifier,
-        dismissButton = if (selectedRoute.canDisconnect()) {
+        dismissButton = if (router.selectedRoute.canDisconnect()) {
             {
-                TextButton(
-                    onClick = {
-                        if (selectedRoute.isSelected) {
-                            router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
-                        }
-
-                        onDismissRequest()
-                    },
-                ) {
-                    Text(text = stringResource(R.string.mr_controller_disconnect))
-                }
+                DismissButton(
+                    router = router,
+                    onDismissRequest = onDismissRequest,
+                )
             }
         } else {
             null
         },
         title = {
-            Row(
+            Title(
+                router = router,
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = selectedRoute.name,
-                    modifier = Modifier.weight(1f),
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                )
+                onDismissRequest = onDismissRequest,
+            )
+        },
+        text = {
+            Text(
+                router = router,
+                volumeControlEnabled = volumeControlEnabled,
+                playbackState = playbackState,
+                mediaController = mediaController,
+                description = description,
+                modifier = Modifier.fillMaxWidth(),
+                onDismissRequest = onDismissRequest,
+            )
+        },
+    )
+}
 
-                IconButton(onClick = onDismissRequest) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.mr_controller_close_description),
+@Composable
+private fun ConfirmButton(
+    router: MediaRouter,
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+) {
+    TextButton(
+        onClick = {
+            if (router.selectedRoute.isSelected) {
+                router.unselect(MediaRouter.UNSELECT_REASON_STOPPED)
+            }
+
+            onDismissRequest()
+        },
+        modifier = modifier,
+    ) {
+        Text(text = stringResource(R.string.mr_controller_stop_casting))
+    }
+}
+
+@Composable
+private fun DismissButton(
+    router: MediaRouter,
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+) {
+    TextButton(
+        onClick = {
+            if (router.selectedRoute.isSelected) {
+                router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
+            }
+
+            onDismissRequest()
+        },
+        modifier = modifier,
+    ) {
+        Text(text = stringResource(R.string.mr_controller_disconnect))
+    }
+}
+
+@Composable
+private fun Title(
+    router: MediaRouter,
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = router.selectedRoute.name,
+            modifier = Modifier.weight(1f),
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+        )
+
+        IconButton(onClick = onDismissRequest) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(R.string.mr_controller_close_description),
+            )
+        }
+    }
+}
+
+@Composable
+private fun Text(
+    router: MediaRouter,
+    volumeControlEnabled: Boolean,
+    playbackState: PlaybackStateCompat?,
+    mediaController: MediaControllerCompat?,
+    description: MediaDescriptionCompat?,
+    modifier: Modifier = Modifier,
+    onDismissRequest: () -> Unit,
+) {
+    var isGroupExpanded by remember { mutableStateOf(false) }
+
+    // TODO Display mr_custom_control
+    // TODO Display mr_art
+
+    Column(
+        modifier = modifier,
+    ) {
+        val hasPlaybackControls = description != null || playbackState != null
+        val hasVolumeControls =
+            volumeControlEnabled && router.selectedRoute.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+
+        if (hasVolumeControls || hasPlaybackControls) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+            ) {
+                if (hasPlaybackControls) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PlaybackControlsTitle(
+                            router = router,
+                            playbackState = playbackState,
+                            description = description,
+                            modifier = Modifier.clickable {
+                                mediaController?.let {
+                                    val pendingIntent = it.sessionActivity
+                                    if (pendingIntent != null) {
+                                        try {
+                                            pendingIntent.send()
+                                            onDismissRequest()
+                                        } catch (exception: PendingIntent.CanceledException) {
+                                            // No-op
+                                        }
+                                    }
+                                }
+                            },
+                        )
+
+                        PlaybackControlsIcon(
+                            playbackState = playbackState,
+                        )
+                    }
+                }
+
+                if (hasPlaybackControls && hasVolumeControls) {
+                    HorizontalDivider()
+                }
+
+                if (hasVolumeControls) {
+                    VolumeControls(
+                        router = router,
+                        modifier = Modifier.fillMaxWidth(),
+                        isExpanded = isGroupExpanded,
+                        onExpandCollapseClick = { isGroupExpanded = !isGroupExpanded }
                     )
                 }
             }
-        },
-        text = {
-            var isGroupExpanded by remember { mutableStateOf(false) }
+        }
 
-            // TODO Display mr_custom_control
-            // TODO Display mr_art
+        if (isGroupExpanded) {
+            val routes = remember(router.selectedRoute) {
+                router.selectedRoute.memberRoutes
+            }
+
+            DeviceGroup(
+                routes = routes,
+                volumeControlEnabled = volumeControlEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlaybackControlsTitle(
+    router: MediaRouter,
+    playbackState: PlaybackStateCompat?,
+    description: MediaDescriptionCompat?,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+    ) {
+        var subtitle: CharSequence? = null
+        val title = when {
+            router.selectedRoute.presentationDisplayId != RouteInfo.PRESENTATION_DISPLAY_ID_NONE -> stringResource(
+                R.string.mr_controller_casting_screen
+            )
+
+            playbackState == null || playbackState.state == PlaybackStateCompat.STATE_NONE -> stringResource(
+                R.string.mr_controller_no_media_selected
+            )
+
+            description?.title.isNullOrEmpty() && description?.subtitle.isNullOrEmpty() -> stringResource(
+                R.string.mr_controller_no_info_available
+            )
+
+            else -> {
+                subtitle = description.subtitle
+                description.title
+            }
+        }
+
+        if (!title.isNullOrEmpty()) {
+            Text(
+                text = title.toString(),
+                maxLines = 1,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
+        if (!subtitle.isNullOrEmpty()) {
+            Text(
+                text = subtitle.toString(),
+                maxLines = 1,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlaybackControlsIcon(
+    playbackState: PlaybackStateCompat?,
+    modifier: Modifier = Modifier,
+) {
+    val icon: ImageVector?
+    val contentDescriptionRes: Int
+    val isPlaying =
+        playbackState?.state == PlaybackStateCompat.STATE_BUFFERING || playbackState?.state == PlaybackStateCompat.STATE_PLAYING
+    val isPauseActionSupported = (playbackState?.actions
+        ?: 0L) and (ACTION_PAUSE or ACTION_PLAY_PAUSE) != 0L
+    val isStopActionSupported =
+        (playbackState?.actions ?: 0L) and ACTION_STOP != 0L
+    val isPlayActionSupported = (playbackState?.actions
+        ?: 0L) and (ACTION_PLAY or ACTION_PLAY_PAUSE) != 0L
+    when {
+        isPlaying && isPauseActionSupported -> {
+            icon = Icons.Default.Pause
+            contentDescriptionRes = R.string.mr_controller_pause
+        }
+
+        isPlaying && isStopActionSupported -> {
+            icon = Icons.Default.Stop
+            contentDescriptionRes = R.string.mr_controller_stop
+        }
+
+        !isPlaying && isPlayActionSupported -> {
+            icon = Icons.Default.PlayArrow
+            contentDescriptionRes = R.string.mr_controller_play
+        }
+
+        else -> {
+            icon = null
+            contentDescriptionRes = ResourcesCompat.ID_NULL
+        }
+    }
+
+    if (icon != null) {
+        Icon(
+            imageVector = icon,
+            contentDescription = stringResource(contentDescriptionRes),
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun VolumeControls(
+    router: MediaRouter,
+    modifier: Modifier = Modifier,
+    isExpanded: Boolean,
+    onExpandCollapseClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        var volume by remember { mutableFloatStateOf(router.selectedRoute.volume.toFloat()) }
+
+        Icon(
+            imageVector = Icons.Default.Audiotrack,
+            contentDescription = null,
+        )
+
+        Slider(
+            value = volume,
+            onValueChange = {
+                volume = it
+
+                router.selectedRoute.requestSetVolume(it.toInt())
+            },
+            modifier = Modifier.weight(1f),
+            valueRange = 0f..router.selectedRoute.volumeMax.toFloat(),
+        )
+
+        if (router.selectedRoute.isGroup && router.selectedRoute.memberRoutes.size > 1) {
+            IconButton(onClick = onExpandCollapseClick) {
+                val scale by animateFloatAsState(targetValue = if (isExpanded) -1f else 1f)
+                val contentDescriptionRes = if (isExpanded) {
+                    R.string.mr_controller_collapse_group
+                } else {
+                    R.string.mr_controller_expand_group
+                }
+
+                Icon(
+                    imageVector = Icons.Default.ExpandMore,
+                    contentDescription = stringResource(
+                        contentDescriptionRes
+                    ),
+                    modifier = Modifier.scale(scaleX = 1f, scaleY = scale),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceGroup(
+    routes: List<RouteInfo>,
+    volumeControlEnabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        items(routes) { route ->
+            val isVolumeControlEnabled =
+                volumeControlEnabled && route.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+            val volumeRange = 0f..route.volumeMax.toFloat()
+            val enabled = route.isEnabled
+
+            var volume by remember {
+                mutableFloatStateOf(if (isVolumeControlEnabled) route.volume.toFloat() else 100f)
+            }
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                val hasPlaybackControls = description != null || playbackState != null
-                val hasVolumeControls =
-                    volumeControlEnabled && selectedRoute.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+                Text(
+                    text = route.name,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
+                )
 
-                if (hasVolumeControls || hasPlaybackControls) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                    ) {
-                        if (hasPlaybackControls) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Column(
-                                    modifier = Modifier.clickable {
-                                        mediaController?.let {
-                                            val pendingIntent = it.sessionActivity
-                                            if (pendingIntent != null) {
-                                                try {
-                                                    pendingIntent.send()
-                                                    onDismissRequest()
-                                                } catch (exception: PendingIntent.CanceledException) {
-                                                    // No-op
-                                                }
-                                            }
-                                        }
-                                    },
-                                ) {
-                                    var subtitle: CharSequence? = null
-                                    val title = when {
-                                        selectedRoute.presentationDisplayId != RouteInfo.PRESENTATION_DISPLAY_ID_NONE -> stringResource(
-                                            R.string.mr_controller_casting_screen
-                                        )
-
-                                        playbackState == null || playbackState?.state == PlaybackStateCompat.STATE_NONE -> stringResource(
-                                            R.string.mr_controller_no_media_selected
-                                        )
-
-                                        description?.title.isNullOrEmpty() && description?.subtitle.isNullOrEmpty() -> stringResource(
-                                            R.string.mr_controller_no_info_available
-                                        )
-
-                                        else -> {
-                                            subtitle = description?.subtitle
-                                            description?.title
-                                        }
-                                    }
-
-                                    if (!title.isNullOrEmpty()) {
-                                        Text(
-                                            text = title.toString(),
-                                            maxLines = 1,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                        )
-                                    }
-
-                                    if (!subtitle.isNullOrEmpty()) {
-                                        Text(
-                                            text = subtitle.toString(),
-                                            maxLines = 1,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
-                                    }
-                                }
-
-                                val icon: ImageVector?
-                                val contentDescriptionRes: Int
-                                val isPlaying =
-                                    playbackState?.state == PlaybackStateCompat.STATE_BUFFERING || playbackState?.state == PlaybackStateCompat.STATE_PLAYING
-                                val isPauseActionSupported = (playbackState?.actions
-                                    ?: 0L) and (ACTION_PAUSE or ACTION_PLAY_PAUSE) != 0L
-                                val isStopActionSupported =
-                                    (playbackState?.actions ?: 0L) and ACTION_STOP != 0L
-                                val isPlayActionSupported = (playbackState?.actions
-                                    ?: 0L) and (ACTION_PLAY or ACTION_PLAY_PAUSE) != 0L
-                                when {
-                                    isPlaying && isPauseActionSupported -> {
-                                        icon = Icons.Default.Pause
-                                        contentDescriptionRes = R.string.mr_controller_pause
-                                    }
-
-                                    isPlaying && isStopActionSupported -> {
-                                        icon = Icons.Default.Stop
-                                        contentDescriptionRes = R.string.mr_controller_stop
-                                    }
-
-                                    !isPlaying && isPlayActionSupported -> {
-                                        icon = Icons.Default.PlayArrow
-                                        contentDescriptionRes = R.string.mr_controller_play
-                                    }
-
-                                    else -> {
-                                        icon = null
-                                        contentDescriptionRes = ResourcesCompat.ID_NULL
-                                    }
-                                }
-
-                                if (icon != null) {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = stringResource(contentDescriptionRes),
-                                    )
-                                }
-                            }
-                        }
-
-                        if (hasPlaybackControls && hasVolumeControls) {
-                            HorizontalDivider()
-                        }
-
-                        if (hasVolumeControls) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                var volume by remember { mutableFloatStateOf(selectedRoute.volume.toFloat()) }
-
-                                Icon(
-                                    imageVector = Icons.Default.Audiotrack,
-                                    contentDescription = null,
-                                )
-
-                                Slider(
-                                    value = volume,
-                                    onValueChange = {
-                                        volume = it
-
-                                        selectedRoute.requestSetVolume(it.toInt())
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    valueRange = 0f..selectedRoute.volumeMax.toFloat(),
-                                )
-
-                                if (isGroup) {
-                                    IconButton(onClick = { isGroupExpanded = !isGroupExpanded }) {
-                                        val scale by animateFloatAsState(targetValue = if (isGroupExpanded) -1f else 1f)
-                                        val contentDescriptionRes = if (isGroupExpanded) {
-                                            R.string.mr_controller_collapse_group
-                                        } else {
-                                            R.string.mr_controller_expand_group
-                                        }
-
-                                        Icon(
-                                            imageVector = Icons.Default.ExpandMore,
-                                            contentDescription = stringResource(
-                                                contentDescriptionRes
-                                            ),
-                                            modifier = Modifier.scale(scaleX = 1f, scaleY = scale),
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (isGroupExpanded) {
-                val routes = remember(selectedRoute) {
-                    selectedRoute.memberRoutes
-                }
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    items(routes) { route ->
-                        val isVolumeControlEnabled =
-                            volumeControlEnabled && route.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
-                        val volumeRange =
-                            if (isGroupExpanded) 0f..route.volumeMax.toFloat() else 0f..100f
-                        val enabled = route.isEnabled
+                    Icon(
+                        imageVector = Icons.Default.Audiotrack,
+                        contentDescription = null,
+                    )
 
-                        var volume by remember {
-                            mutableFloatStateOf(if (isVolumeControlEnabled) route.volume.toFloat() else 100f)
-                        }
+                    Slider(
+                        value = volume,
+                        onValueChange = {
+                            if (isVolumeControlEnabled) {
+                                volume = it
 
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                text = route.name,
-                                maxLines = 1,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Audiotrack,
-                                    contentDescription = null,
-                                )
-
-                                Slider(
-                                    value = volume,
-                                    onValueChange = {
-                                        if (isVolumeControlEnabled) {
-                                            volume = it
-
-                                            route.requestSetVolume(it.toInt())
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                    enabled = enabled,
-                                    valueRange = volumeRange,
-                                )
+                                route.requestSetVolume(it.toInt())
                             }
-                        }
-                    }
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = enabled,
+                        valueRange = volumeRange,
+                    )
                 }
             }
-        },
-    )
+        }
+    }
 }
