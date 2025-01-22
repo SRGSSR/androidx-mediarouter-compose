@@ -9,6 +9,7 @@ import android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY_PAUSE
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_STOP
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -127,17 +128,29 @@ private fun ControllerDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            ConfirmButton(
-                router = router,
-                onDismissRequest = onDismissRequest,
+            AlertButton(
+                label = stringResource(R.string.mr_controller_stop_casting),
+                onClick = {
+                    if (router.selectedRoute.isSelected) {
+                        router.unselect(MediaRouter.UNSELECT_REASON_STOPPED)
+                    }
+
+                    onDismissRequest()
+                },
             )
         },
         modifier = modifier,
         dismissButton = if (router.selectedRoute.canDisconnect()) {
             {
-                DismissButton(
-                    router = router,
-                    onDismissRequest = onDismissRequest,
+                AlertButton(
+                    label = stringResource(R.string.mr_controller_disconnect),
+                    onClick = {
+                        if (router.selectedRoute.isSelected) {
+                            router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
+                        }
+
+                        onDismissRequest()
+                    },
                 )
             }
         } else {
@@ -145,7 +158,7 @@ private fun ControllerDialog(
         },
         title = {
             Title(
-                router = router,
+                label = router.selectedRoute.name,
                 modifier = Modifier.fillMaxWidth(),
                 onDismissRequest = onDismissRequest,
             )
@@ -165,48 +178,22 @@ private fun ControllerDialog(
 }
 
 @Composable
-private fun ConfirmButton(
-    router: MediaRouter,
+private fun AlertButton(
+    label: String,
     modifier: Modifier = Modifier,
-    onDismissRequest: () -> Unit,
+    onClick: () -> Unit,
 ) {
     TextButton(
-        onClick = {
-            if (router.selectedRoute.isSelected) {
-                router.unselect(MediaRouter.UNSELECT_REASON_STOPPED)
-            }
-
-            onDismissRequest()
-        },
+        onClick = onClick,
         modifier = modifier,
     ) {
-        Text(text = stringResource(R.string.mr_controller_stop_casting))
-    }
-}
-
-@Composable
-private fun DismissButton(
-    router: MediaRouter,
-    modifier: Modifier = Modifier,
-    onDismissRequest: () -> Unit,
-) {
-    TextButton(
-        onClick = {
-            if (router.selectedRoute.isSelected) {
-                router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
-            }
-
-            onDismissRequest()
-        },
-        modifier = modifier,
-    ) {
-        Text(text = stringResource(R.string.mr_controller_disconnect))
+        Text(text = label)
     }
 }
 
 @Composable
 private fun Title(
-    router: MediaRouter,
+    label: String,
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
 ) {
@@ -215,7 +202,7 @@ private fun Title(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = router.selectedRoute.name,
+            text = label,
             modifier = Modifier.weight(1f),
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
@@ -240,17 +227,18 @@ private fun Text(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
 ) {
-    var isGroupExpanded by remember { mutableStateOf(false) }
-
     // TODO Display mr_custom_control
     // TODO Display mr_art
 
     Column(
         modifier = modifier,
     ) {
+        var isGroupExpanded by remember { mutableStateOf(false) }
+
         val hasPlaybackControls = description != null || playbackState != null
         val hasVolumeControls =
             volumeControlEnabled && router.selectedRoute.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+        val selectedRoute = remember { router.selectedRoute }
 
         if (hasVolumeControls || hasPlaybackControls) {
             Column(
@@ -264,7 +252,7 @@ private fun Text(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         PlaybackControlsTitle(
-                            router = router,
+                            route = selectedRoute,
                             playbackState = playbackState,
                             description = description,
                             modifier = Modifier.clickable {
@@ -275,7 +263,11 @@ private fun Text(
                                             pendingIntent.send()
                                             onDismissRequest()
                                         } catch (exception: PendingIntent.CanceledException) {
-                                            // No-op
+                                            Log.d(
+                                                "MediaRouteControllerDialog",
+                                                "$pendingIntent was not sent, it has been canceled.",
+                                                exception,
+                                            )
                                         }
                                     }
                                 }
@@ -294,7 +286,7 @@ private fun Text(
 
                 if (hasVolumeControls) {
                     VolumeControls(
-                        router = router,
+                        route = selectedRoute,
                         modifier = Modifier.fillMaxWidth(),
                         isExpanded = isGroupExpanded,
                         onExpandCollapseClick = { isGroupExpanded = !isGroupExpanded }
@@ -304,12 +296,8 @@ private fun Text(
         }
 
         if (isGroupExpanded) {
-            val routes = remember(router.selectedRoute) {
-                router.selectedRoute.memberRoutes
-            }
-
             DeviceGroup(
-                routes = routes,
+                routes = selectedRoute.memberRoutes,
                 volumeControlEnabled = volumeControlEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -321,7 +309,7 @@ private fun Text(
 
 @Composable
 private fun PlaybackControlsTitle(
-    router: MediaRouter,
+    route: RouteInfo,
     playbackState: PlaybackStateCompat?,
     description: MediaDescriptionCompat?,
     modifier: Modifier = Modifier,
@@ -331,7 +319,7 @@ private fun PlaybackControlsTitle(
     ) {
         var subtitle: CharSequence? = null
         val title = when {
-            router.selectedRoute.presentationDisplayId != RouteInfo.PRESENTATION_DISPLAY_ID_NONE -> stringResource(
+            route.presentationDisplayId != RouteInfo.PRESENTATION_DISPLAY_ID_NONE -> stringResource(
                 R.string.mr_controller_casting_screen
             )
 
@@ -415,7 +403,7 @@ private fun PlaybackControlsIcon(
 
 @Composable
 private fun VolumeControls(
-    router: MediaRouter,
+    route: RouteInfo,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     onExpandCollapseClick: () -> Unit,
@@ -425,7 +413,7 @@ private fun VolumeControls(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        var volume by remember { mutableFloatStateOf(router.selectedRoute.volume.toFloat()) }
+        var volume by remember { mutableFloatStateOf(route.volume.toFloat()) }
 
         Icon(
             imageVector = Icons.Default.Audiotrack,
@@ -437,13 +425,13 @@ private fun VolumeControls(
             onValueChange = {
                 volume = it
 
-                router.selectedRoute.requestSetVolume(it.toInt())
+                route.requestSetVolume(it.toInt())
             },
             modifier = Modifier.weight(1f),
-            valueRange = 0f..router.selectedRoute.volumeMax.toFloat(),
+            valueRange = 0f..route.volumeMax.toFloat(),
         )
 
-        if (router.selectedRoute.isGroup && router.selectedRoute.memberRoutes.size > 1) {
+        if (route.isGroup && route.memberRoutes.size > 1) {
             IconButton(onClick = onExpandCollapseClick) {
                 val scale by animateFloatAsState(targetValue = if (isExpanded) -1f else 1f)
                 val contentDescriptionRes = if (isExpanded) {
