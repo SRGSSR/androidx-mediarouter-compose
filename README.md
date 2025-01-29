@@ -1,4 +1,4 @@
-# Pillarbox Android MediaRouter Compose
+# AndroidX MediaRouter Compose
 
 Compose implementation of [MediaRouteButton][media-route-button] from [AndroidX MediaRouter][androidx-mediarouter].
 

@@ -20,7 +20,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "pillarbox-android-mediarouter-compose"
+rootProject.name = "androidx-mediarouter-compose"
 
 include(":app")
- 
