@@ -47,6 +47,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":lib"))
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.foundation)

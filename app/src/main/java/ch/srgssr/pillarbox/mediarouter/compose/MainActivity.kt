@@ -26,7 +26,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.mediarouter.app.MediaRouteButton
 import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteSelector
-import ch.srgssr.pillarbox.mediarouter.compose.ui.mediarouter.MediaRouterButton
+import ch.srgssr.androidx.mediarouter.compose.MediaRouteButton
 import ch.srgssr.pillarbox.mediarouter.compose.ui.theme.PillarboxAndroidMediaRouterComposeTheme
 
 class MainActivity : FragmentActivity() {
@@ -52,7 +52,7 @@ class MainActivity : FragmentActivity() {
                         MediaRouteButtonType(
                             label = "Compose",
                             button = {
-                                MediaRouterButton(
+                                MediaRouteButton(
                                     routeSelector = routeSelector,
                                 )
                             },
