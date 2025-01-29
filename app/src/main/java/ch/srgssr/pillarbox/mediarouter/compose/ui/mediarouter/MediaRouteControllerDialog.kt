@@ -218,6 +218,7 @@ private fun Title(
 }
 
 @Composable
+@Suppress("LongMethod")
 private fun Text(
     router: MediaRouter,
     volumeControlEnabled: Boolean,
@@ -264,7 +265,7 @@ private fun Text(
                                             onDismissRequest()
                                         } catch (exception: PendingIntent.CanceledException) {
                                             Log.d(
-                                                "MediaRouteControllerDialog",
+                                                "MediaRouteController",
                                                 "$pendingIntent was not sent, it has been canceled.",
                                                 exception,
                                             )
@@ -362,8 +363,8 @@ private fun PlaybackControlsIcon(
 ) {
     val icon: ImageVector?
     val contentDescriptionRes: Int
-    val isPlaying =
-        playbackState?.state == PlaybackStateCompat.STATE_BUFFERING || playbackState?.state == PlaybackStateCompat.STATE_PLAYING
+    val isPlaying = playbackState?.state == PlaybackStateCompat.STATE_BUFFERING
+            || playbackState?.state == PlaybackStateCompat.STATE_PLAYING
     val isPauseActionSupported = (playbackState?.actions
         ?: 0L) and (ACTION_PAUSE or ACTION_PLAY_PAUSE) != 0L
     val isStopActionSupported =
