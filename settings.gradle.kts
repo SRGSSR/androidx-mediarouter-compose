@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "androidx-mediarouter-compose"
 
-include(":app")
+include(":app", ":lib")
