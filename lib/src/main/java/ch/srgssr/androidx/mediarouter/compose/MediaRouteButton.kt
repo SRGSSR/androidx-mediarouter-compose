@@ -86,6 +86,7 @@ fun MediaRouteButton(
         MediaRouteDialog(
             router = router,
             routeSelector = routeSelector,
+            onDismissRequest = { showDialog = false },
         )
     }
 
@@ -105,6 +106,7 @@ fun MediaRouteButton(
 private fun MediaRouteDialog(
     router: MediaRouter,
     routeSelector: MediaRouteSelector,
+    onDismissRequest: () -> Unit,
 ) {
     val context = LocalContext.current
     val params = router.routerParams
@@ -126,6 +128,7 @@ private fun MediaRouteDialog(
         } else {
             MediaRouteChooserDialog(
                 routeSelector = routeSelector,
+                onDismissRequest = onDismissRequest,
             )
         }
     } else {

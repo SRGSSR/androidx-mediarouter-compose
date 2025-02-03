@@ -2,6 +2,7 @@
 android-gradle-plugin = "8.8.0"
 androidx-activity = "1.10.0"
 androidx-compose = "2025.01.01"
+androidx-core = "1.15.0"
 androidx-fragment = "1.8.5"
 androidx-mediarouter = "1.7.0"
 detekt = "1.23.7"
@@ -17,6 +18,7 @@ androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
 androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "androidx-fragment" }
 androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", version.ref = "androidx-mediarouter" }
 
