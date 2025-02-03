@@ -36,6 +36,14 @@ android {
         resValues = false
         shaders = false
     }
+
+    lint {
+        abortOnError = true
+        checkAllWarnings = true
+        checkDependencies = true
+        disable.add("RestrictedApi")
+        sarifReport = true
+    }
 }
 
 dependencies {
