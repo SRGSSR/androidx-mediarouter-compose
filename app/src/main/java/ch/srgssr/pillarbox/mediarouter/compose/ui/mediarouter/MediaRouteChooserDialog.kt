@@ -47,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.mediarouter.R
+import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
@@ -129,6 +130,18 @@ fun MediaRouteChooserDialog(
         onDismissRequest = onDismissRequest,
     )
 }
+
+// This is a copy of MediaRouter.RouteInfo.isDefaultOrBluetooth().
+internal val RouteInfo.isDefaultRouteOrBluetooth: Boolean
+    get() {
+        return if (isDefault || deviceType == RouteInfo.DEVICE_TYPE_BLUETOOTH_A2DP) {
+            true
+        } else {
+            provider.providerInstance.metadata.packageName == "android" &&
+                    supportsControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO) &&
+                    !supportsControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
+        }
+    }
 
 @Composable
 private fun rememberRouterCallback(
