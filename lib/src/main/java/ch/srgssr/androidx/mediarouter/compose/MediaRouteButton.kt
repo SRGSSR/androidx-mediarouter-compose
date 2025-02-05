@@ -133,10 +133,10 @@ private fun MediaRouteDialog(
         }
     } else {
         if (useDynamicGroup) {
-            // TODO Use MediaRouteDynamicControllerDialog
+            // TODO Display MediaRouteDynamicControllerDialog
         } else {
             MediaRouteControllerDialog(
-                routeSelector = routeSelector,
+                onDismissRequest = onDismissRequest,
             )
         }
     }

@@ -15,6 +15,25 @@ import androidx.compose.ui.unit.dp
 // We copied the necessary content to avoid a dependency on these modules for a couple of icons.
 @Suppress("MagicNumber")
 internal object Icons {
+    internal val Audiotrack: ImageVector by lazy {
+        materialIcon(name = "Filled.Audiotrack") {
+            materialPath {
+                moveTo(12.0f, 3.0f)
+                verticalLineToRelative(9.28f)
+                curveToRelative(-0.47f, -0.17f, -0.97f, -0.28f, -1.5f, -0.28f)
+                curveTo(8.01f, 12.0f, 6.0f, 14.01f, 6.0f, 16.5f)
+                reflectiveCurveTo(8.01f, 21.0f, 10.5f, 21.0f)
+                curveToRelative(2.31f, 0.0f, 4.2f, -1.75f, 4.45f, -4.0f)
+                horizontalLineTo(15.0f)
+                verticalLineTo(6.0f)
+                horizontalLineToRelative(4.0f)
+                verticalLineTo(3.0f)
+                horizontalLineToRelative(-7.0f)
+                close()
+            }
+        }
+    }
+
     internal val Cast: ImageVector by lazy {
         materialIcon(name = "Filled.Cast") {
             materialPath {
@@ -100,6 +119,26 @@ internal object Icons {
         }
     }
 
+    internal val Close: ImageVector by lazy {
+        materialIcon(name = "Filled.Close") {
+            materialPath {
+                moveTo(19.0f, 6.41f)
+                lineTo(17.59f, 5.0f)
+                lineTo(12.0f, 10.59f)
+                lineTo(6.41f, 5.0f)
+                lineTo(5.0f, 6.41f)
+                lineTo(10.59f, 12.0f)
+                lineTo(5.0f, 17.59f)
+                lineTo(6.41f, 19.0f)
+                lineTo(12.0f, 13.41f)
+                lineTo(17.59f, 19.0f)
+                lineTo(19.0f, 17.59f)
+                lineTo(13.41f, 12.0f)
+                close()
+            }
+        }
+    }
+
     internal val Downloading: ImageVector by lazy {
         materialIcon(name = "Filled.Downloading") {
             materialPath {
@@ -143,6 +182,50 @@ internal object Icons {
                 verticalLineToRelative(2.02f)
                 curveTo(7.05f, 4.56f, 4.0f, 7.92f, 4.0f, 12.0f)
                 reflectiveCurveTo(7.05f, 19.44f, 11.0f, 19.93f)
+                close()
+            }
+        }
+    }
+
+    internal val ExpandMore: ImageVector by lazy {
+        materialIcon(name = "Filled.ExpandMore") {
+            materialPath {
+                moveTo(16.59f, 8.59f)
+                lineTo(12.0f, 13.17f)
+                lineTo(7.41f, 8.59f)
+                lineTo(6.0f, 10.0f)
+                lineToRelative(6.0f, 6.0f)
+                lineToRelative(6.0f, -6.0f)
+                close()
+            }
+        }
+    }
+
+    internal val Pause: ImageVector by lazy {
+        materialIcon(name = "Filled.Pause") {
+            materialPath {
+                moveTo(6.0f, 19.0f)
+                horizontalLineToRelative(4.0f)
+                lineTo(10.0f, 5.0f)
+                lineTo(6.0f, 5.0f)
+                verticalLineToRelative(14.0f)
+                close()
+                moveTo(14.0f, 5.0f)
+                verticalLineToRelative(14.0f)
+                horizontalLineToRelative(4.0f)
+                lineTo(18.0f, 5.0f)
+                horizontalLineToRelative(-4.0f)
+                close()
+            }
+        }
+    }
+
+    internal val PlayArrow: ImageVector by lazy {
+        materialIcon(name = "Filled.PlayArrow") {
+            materialPath {
+                moveTo(8.0f, 5.0f)
+                verticalLineToRelative(14.0f)
+                lineToRelative(11.0f, -7.0f)
                 close()
             }
         }
@@ -224,6 +307,18 @@ internal object Icons {
                 verticalLineToRelative(-2.0f)
                 horizontalLineTo(6.0f)
                 verticalLineTo(5.0f)
+                close()
+            }
+        }
+    }
+
+    internal val Stop: ImageVector by lazy {
+        materialIcon(name = "Filled.Stop") {
+            materialPath {
+                moveTo(6.0f, 6.0f)
+                horizontalLineToRelative(12.0f)
+                verticalLineToRelative(12.0f)
+                horizontalLineTo(6.0f)
                 close()
             }
         }
