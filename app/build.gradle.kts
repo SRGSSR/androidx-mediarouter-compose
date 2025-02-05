@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "ch.srgssr.pillarbox.mediarouter.compose"
+    namespace = "ch.srgssr.androidx.mediarouter.compose.demo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "ch.srgssr.pillarbox.mediarouter.compose"
+        applicationId = "ch.srgssr.androidx.mediarouter.compose.demo"
         minSdk = 21
         targetSdk = 35
         versionCode = 1
