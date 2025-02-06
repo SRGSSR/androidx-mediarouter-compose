@@ -303,14 +303,15 @@ private fun ControllerDialogContent(
     onPlaybackTitleClick: () -> Unit,
     onPlaybackIconClick: () -> Unit,
 ) {
-    // TODO Display mr_custom_control
-    // TODO Display mr_art
-
     Column(modifier = modifier) {
         val showPlaybackControl =
             customControlView == null && (description != null || playbackState != null)
         val showVolumeControl =
             showVolumeControl(route, volumeControlEnabled, isGroupVolumeUxEnabled)
+
+        customControlView?.invoke()
+
+        // TODO Display mr_art
 
         if (!showVolumeControl && !showPlaybackControl) {
             return
