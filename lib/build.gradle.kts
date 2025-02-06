@@ -37,6 +37,7 @@ android {
     }
 
     lint {
+        disable.add("PrivateResource")
         disable.add("RestrictedApi")
     }
 
