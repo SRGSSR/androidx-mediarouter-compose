@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.maven.publish)
 }
 
 android {
@@ -46,6 +47,13 @@ android {
             isIncludeAndroidResources = true
         }
     }
+
+    publishing {
+        singleVariant("release") {
+            withJavadocJar()
+            withSourcesJar()
+        }
+    }
 }
 
 tasks.withType<Test>().configureEach {
@@ -67,4 +75,39 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.robolectric)
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("GitHubPackages") {
+            group = "ch.srgssr.androidx.mediarouter"
+            version = providers.environmentVariable("VERSION_NAME").getOrElse("dev")
+
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/SRGSSR/androidx-mediarouter-compose")
+
+            val gitHubUser = providers.gradleProperty("gpr.user")
+                .orElse(providers.environmentVariable("USERNAME"))
+            val gitHubPassword = providers.gradleProperty("gpr.key")
+                .orElse(providers.environmentVariable("GITHUB_TOKEN"))
+
+            credentials {
+                if (gitHubUser.isPresent) {
+                    username = gitHubUser.get()
+                }
+
+                if (gitHubPassword.isPresent) {
+                    password = gitHubPassword.get()
+                }
+            }
+        }
+    }
 }
