@@ -28,3 +28,4 @@ android-library = { id = "com.android.library", version.ref = "android-gradle-pl
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+maven-publish = { id = "org.gradle.maven-publish" }
