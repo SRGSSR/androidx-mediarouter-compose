@@ -1,4 +1,4 @@
-package ch.srgssr.pillarbox.mediarouter.compose.ui.theme
+package ch.srgssr.androidx.mediarouter.compose.demo
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -7,7 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 @Composable
-fun PillarboxAndroidMediaRouterComposeTheme(
+fun DemoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {

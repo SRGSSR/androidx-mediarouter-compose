@@ -1,4 +1,4 @@
-package ch.srgssr.pillarbox.mediarouter.compose
+package ch.srgssr.androidx.mediarouter.compose.demo
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -27,7 +27,6 @@ import androidx.mediarouter.app.MediaRouteButton
 import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteSelector
 import ch.srgssr.androidx.mediarouter.compose.MediaRouteButton
-import ch.srgssr.pillarbox.mediarouter.compose.ui.theme.PillarboxAndroidMediaRouterComposeTheme
 
 class MainActivity : FragmentActivity() {
     private val routeSelector = MediaRouteSelector.Builder()
@@ -41,7 +40,7 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            PillarboxAndroidMediaRouterComposeTheme {
+            DemoTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Row(
                         modifier = Modifier
@@ -51,16 +50,14 @@ class MainActivity : FragmentActivity() {
                     ) {
                         MediaRouteButtonType(
                             label = "Compose",
-                            button = {
-                                MediaRouteButton(
-                                    routeSelector = routeSelector,
-                                )
+                            content = {
+                                MediaRouteButton(routeSelector = routeSelector)
                             },
                         )
 
                         MediaRouteButtonType(
                             label = "AppCompat",
-                            button = {
+                            content = {
                                 AndroidView(
                                     factory = { context ->
                                         MediaRouteButton(context).apply {
@@ -81,7 +78,7 @@ class MainActivity : FragmentActivity() {
 private fun MediaRouteButtonType(
     label: String,
     modifier: Modifier = Modifier,
-    button: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     Column(
         modifier = modifier,
@@ -93,17 +90,17 @@ private fun MediaRouteButtonType(
             style = MaterialTheme.typography.titleLarge,
         )
 
-        button()
+        content()
     }
 }
 
 @Preview
 @Composable
 private fun MediaRouteButtonTypePreview() {
-    PillarboxAndroidMediaRouterComposeTheme {
+    DemoTheme {
         MediaRouteButtonType(
             label = "Type",
-            button = {
+            content = {
                 IconButton(onClick = {}) {
                     Icon(
                         imageVector = Icons.Default.Cast,
