@@ -259,13 +259,14 @@ private fun ColumnScope.NoDevicesNoWifiHint() {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val context = LocalContext.current
+
         Icon(
             imageVector = Icons.Wifi,
             contentDescription = stringResource(R.string.ic_media_route_learn_more_accessibility),
         )
 
-        // TODO Handle every device type (see DeviceUtils.getDialogChooserWifiWarningDescription())
-        Text(text = stringResource(R.string.mr_chooser_wifi_warning_description_unknown))
+        Text(text = DeviceUtils.getDialogChooserWifiWarningDescription(context))
     }
 
     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -283,10 +284,10 @@ private fun ColumnScope.NoRoutes() {
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            val context = LocalContext.current
             val uriHandler = LocalUriHandler.current
 
-            // TODO Handle every device type (see DeviceUtils.getDialogChooserWifiWarningDescription())
-            Text(text = stringResource(R.string.mr_chooser_wifi_warning_description_unknown))
+            Text(text = DeviceUtils.getDialogChooserWifiWarningDescription(context))
 
             LearnMoreLink(
                 url = "https://support.google.com/chromecast/?p=trouble-finding-devices",
