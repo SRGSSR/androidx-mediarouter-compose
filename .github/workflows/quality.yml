@@ -27,6 +27,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Run Android Lint
         run: ./gradlew lintDebug
+      - name: Upload Android Lint results
+        uses: github/codeql-action/upload-sarif@v3
+        if: success() || failure()
+        with:
+          sarif_file: demo/build/reports/lint-results-debug.sarif
+          category: android-lint
 
   detekt:
     name: Detekt
@@ -43,6 +49,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Run Detekt
         run: ./gradlew detektDebug
+      - name: Upload Detekt results
+        uses: github/codeql-action/upload-sarif@v3
+        if: success() || failure()
+        with:
+          sarif_file: demo/build/reports/detekt/debug.sarif
+          category: detekt
 
   unit-test:
     name: Unit Tests
@@ -58,7 +70,19 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew koverXmlReport
+      - name: Report Code Coverage
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: madrapps/jacoco-report@v1.7.1
+        with:
+          paths: ${{ github.workspace }}/**/build/reports/kover/report.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 0
+          min-coverage-changed-files: 0
+          update-comment: true
+          title: Code Coverage
+          pass-emoji: 🟢
+          fail-emoji: 🔴
 
   publish-to-maven-local:
     name: Publish to Maven local

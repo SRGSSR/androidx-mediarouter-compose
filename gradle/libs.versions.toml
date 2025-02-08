@@ -11,6 +11,7 @@ coil = "3.1.0"
 detekt = "1.23.7"
 junit = "4.13.2"
 kotlin = "2.1.10"
+kotlinx-kover = "0.9.1"
 robolectric = "4.14.1"
 
 [libraries]
@@ -40,4 +41,5 @@ android-library = { id = "com.android.library", version.ref = "android-gradle-pl
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }
 maven-publish = { id = "org.gradle.maven-publish" }
