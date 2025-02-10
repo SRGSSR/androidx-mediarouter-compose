@@ -15,6 +15,7 @@ jobs:
       VERSION_NAME: ${{ github.ref_name }}
     permissions:
       contents: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,4 +32,4 @@ jobs:
           draft: true
           generate_release_notes: true
           fail_on_unmatched_files: true
-          files: lib/build/outputs/aar/mediarouter-compose-release.aar
+          files: mediarouter-compose/build/outputs/aar/mediarouter-compose-release.aar
