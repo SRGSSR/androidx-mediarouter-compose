@@ -69,6 +69,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.core)
     implementation(libs.androidx.mediarouter)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)

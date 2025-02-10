@@ -7,6 +7,7 @@ androidx-fragment = "1.8.5"
 androidx-mediarouter = "1.7.0"
 androidx-test-core = "1.6.1"
 androidx-test-ext-junit = "1.2.1"
+coil = "3.1.0"
 detekt = "1.23.7"
 junit = "4.13.2"
 kotlin = "2.1.10"
@@ -27,6 +28,8 @@ androidx-fragment = { group = "androidx.fragment", name = "fragment", version.re
 androidx-mediarouter = { group = "androidx.mediarouter", name = "mediarouter", version.ref = "androidx-mediarouter" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidx-test-core" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }

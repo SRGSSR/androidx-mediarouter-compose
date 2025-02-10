@@ -47,12 +47,31 @@ import androidx.mediarouter.media.MediaRouterParams
  * using the media route chooser dialog.
  * @param colors [IconButtonColors] that will be used to resolve the colors used for this icon
  * button in different states. See [IconButtonDefaults.iconButtonColors].
+ * @param mediaRouteChooserDialog The media route chooser dialog. The provided callback should be
+ * called when the dialog has to be dismissed.
+ * @param mediaRouteDynamicChooserDialog The media route chooser dialog for dynamic group.
+ * @param mediaRouteControllerDialog The media route controller dialog. The provided callback should
+ * be called when the dialog has to be dismissed.
+ * @param mediaRouteDynamicControllerDialog The media route controller dialog for dynamic group.
  */
 @Composable
 fun MediaRouteButton(
     modifier: Modifier = Modifier,
     routeSelector: MediaRouteSelector = MediaRouteSelector.EMPTY,
     colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
+    mediaRouteChooserDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = { onDismissRequest ->
+        MediaRouteChooserDialog(
+            routeSelector = routeSelector,
+            onDismissRequest = onDismissRequest,
+        )
+    },
+    mediaRouteDynamicChooserDialog: @Composable () -> Unit = {}, // TODO
+    mediaRouteControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = { onDismissRequest ->
+        MediaRouteControllerDialog(
+            onDismissRequest = onDismissRequest,
+        )
+    },
+    mediaRouteDynamicControllerDialog: @Composable () -> Unit = {}, // TODO
 ) {
     var mediaRouterCallbackTriggered by remember { mutableIntStateOf(0) }
     var showDialog by remember { mutableStateOf(false) }
@@ -85,7 +104,10 @@ fun MediaRouteButton(
     if (showDialog) {
         MediaRouteDialog(
             router = router,
-            routeSelector = routeSelector,
+            mediaRouteChooserDialog = mediaRouteChooserDialog,
+            mediaRouteDynamicChooserDialog = mediaRouteDynamicChooserDialog,
+            mediaRouteControllerDialog = mediaRouteControllerDialog,
+            mediaRouteDynamicControllerDialog = mediaRouteDynamicControllerDialog,
             onDismissRequest = { showDialog = false },
         )
     }
@@ -105,7 +127,10 @@ fun MediaRouteButton(
 @Composable
 private fun MediaRouteDialog(
     router: MediaRouter,
-    routeSelector: MediaRouteSelector,
+    mediaRouteChooserDialog: @Composable (onDismissRequest: () -> Unit) -> Unit,
+    mediaRouteDynamicChooserDialog: @Composable () -> Unit,
+    mediaRouteControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit,
+    mediaRouteDynamicControllerDialog: @Composable () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -124,20 +149,15 @@ private fun MediaRouteDialog(
 
     if (router.selectedRoute.isDefaultOrBluetooth) {
         if (useDynamicGroup) {
-            // TODO Display MediaRouteDynamicChooserDialog
+            mediaRouteDynamicChooserDialog()
         } else {
-            MediaRouteChooserDialog(
-                routeSelector = routeSelector,
-                onDismissRequest = onDismissRequest,
-            )
+            mediaRouteChooserDialog(onDismissRequest)
         }
     } else {
         if (useDynamicGroup) {
-            // TODO Display MediaRouteDynamicControllerDialog
+            mediaRouteDynamicControllerDialog()
         } else {
-            MediaRouteControllerDialog(
-                onDismissRequest = onDismissRequest,
-            )
+            mediaRouteControllerDialog(onDismissRequest)
         }
     }
 }

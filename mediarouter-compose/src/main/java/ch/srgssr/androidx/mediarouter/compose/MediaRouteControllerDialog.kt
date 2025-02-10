@@ -44,6 +44,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,6 +53,7 @@ import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
+import coil3.compose.AsyncImage
 
 /**
  * This class implements the route controller dialog for [MediaRouter].
@@ -98,7 +100,6 @@ fun MediaRouteControllerDialog(
 
             override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
                 description = metadata?.description
-                // updateArtIconIfNeeded() // TODO
                 mediaRouterCallbackTriggered++
             }
         }
@@ -136,7 +137,6 @@ fun MediaRouteControllerDialog(
             mediaController = MediaControllerCompat(context, mediaSessionToken)
             mediaController?.registerCallback(mediaControllerCallback)
 
-            // updateArtIconIfNeeded() // TODO
             mediaRouterCallbackTriggered++
         }
 
@@ -303,14 +303,25 @@ private fun ControllerDialogContent(
     onPlaybackTitleClick: () -> Unit,
     onPlaybackIconClick: () -> Unit,
 ) {
-    // TODO Display mr_custom_control
-    // TODO Display mr_art
-
     Column(modifier = modifier) {
         val showPlaybackControl =
             customControlView == null && (description != null || playbackState != null)
         val showVolumeControl =
             showVolumeControl(route, volumeControlEnabled, isGroupVolumeUxEnabled)
+        val imageModel = description?.iconBitmap?.takeIf { !it.isRecycled } ?: description?.iconUri
+
+        customControlView?.invoke()
+
+        if (imageModel != null) {
+            AsyncImage(
+                model = imageModel,
+                contentDescription = stringResource(R.string.mr_controller_album_art),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onPlaybackTitleClick() },
+                contentScale = ContentScale.FillBounds,
+            )
+        }
 
         if (!showVolumeControl && !showPlaybackControl) {
             return
