@@ -1,5 +1,14 @@
 package ch.srgssr.androidx.mediarouter.compose
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
@@ -9,7 +18,11 @@ import androidx.compose.ui.graphics.vector.DefaultFillType
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathBuilder
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import kotlin.reflect.full.declaredMemberProperties
 
 // The content of this file comes from the material-icons and material-icons-extended artefacts.
 // We copied the necessary content to avoid a dependency on these modules for a couple of icons.
@@ -395,7 +408,7 @@ private inline fun ImageVector.Builder.materialPath(
     fillAlpha: Float = 1f,
     strokeAlpha: Float = 1f,
     pathFillType: PathFillType = DefaultFillType,
-    pathBuilder: PathBuilder.() -> Unit
+    pathBuilder: PathBuilder.() -> Unit,
 ): ImageVector.Builder {
     return path(
         fill = SolidColor(Color.Black),
@@ -412,3 +425,35 @@ private inline fun ImageVector.Builder.materialPath(
 }
 
 private const val MaterialIconDimension = 24f
+
+private class IconParameterProvider : PreviewParameterProvider<Pair<String, ImageVector>> {
+    override val values: Sequence<Pair<String, ImageVector>>
+        get() = Icons::class.declaredMemberProperties
+            .asSequence()
+            .filter { it.returnType.classifier == ImageVector::class }
+            .map { it.name to it.get(Icons) as ImageVector }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun IconPreview(
+    @PreviewParameter(IconParameterProvider::class) imageData: Pair<String, ImageVector>,
+) {
+    MaterialTheme {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(
+                imageVector = imageData.second,
+                contentDescription = null,
+            )
+
+            Text(
+                text = imageData.first,
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+    }
+}
