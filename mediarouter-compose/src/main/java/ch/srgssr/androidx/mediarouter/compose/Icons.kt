@@ -22,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import kotlin.reflect.full.declaredMemberProperties
 
 // The content of this file comes from the material-icons and material-icons-extended artefacts.
 // We copied the necessary content to avoid a dependency on these modules for a couple of icons.
@@ -334,10 +333,17 @@ private const val MaterialIconDimension = 24f
 
 private class IconParameterProvider : PreviewParameterProvider<Pair<String, ImageVector>> {
     override val values: Sequence<Pair<String, ImageVector>>
-        get() = Icons::class.declaredMemberProperties
+        get() = Icons::class.java.declaredMethods
             .asSequence()
-            .filter { it.returnType.classifier == ImageVector::class }
-            .map { it.name to it.get(Icons) as ImageVector }
+            .filter { it.returnType == ImageVector::class.java }
+            .map {
+                val name = it.name
+                    .removePrefix("get")
+                    .removeSuffix("\$mediarouter_compose_debug")
+                val imageVector = it.invoke(Icons) as ImageVector
+
+                name to imageVector
+            }
 }
 
 @Composable

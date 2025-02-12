@@ -73,9 +73,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(platform(libs.kotlin.bom))
-    debugImplementation(libs.kotlin.reflect) {
-        because("it is needed to dynamically generate Icons previews")
-    }
 
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
