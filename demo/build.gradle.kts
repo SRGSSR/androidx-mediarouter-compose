@@ -41,7 +41,6 @@ android {
         abortOnError = true
         checkAllWarnings = true
         checkDependencies = true
-        disable.add("RestrictedApi")
         sarifReport = true
     }
 }
