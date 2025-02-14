@@ -1,25 +1,16 @@
 package ch.srgssr.androidx.mediarouter.compose
 
-import androidx.annotation.StringRes
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.mediarouter.R
-import androidx.mediarouter.app.SystemOutputSwitcherDialogController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.mediarouter.media.MediaRouteSelector
-import androidx.mediarouter.media.MediaRouter
-import androidx.mediarouter.media.MediaRouter.RouteInfo
-import androidx.mediarouter.media.MediaRouterParams
+import ch.srgssr.androidx.mediarouter.compose.MediaRouteButtonViewModel.DialogType
 
 /**
  * The media route button allows the user to select routes and to control the currently selected
@@ -71,160 +62,29 @@ fun MediaRouteButton(
     },
     mediaRouteDynamicControllerDialog: @Composable () -> Unit = {}, // TODO
 ) {
-    var mediaRouterCallbackTriggered by remember { mutableIntStateOf(0) }
-    var showDialog by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-    val router = remember { MediaRouter.getInstance(context) }
-    val mediaRouterCallback = rememberMediaRouterCallback { mediaRouterCallbackTriggered++ }
-    val connectionState by remember(mediaRouterCallbackTriggered) {
-        mutableStateOf(computeConnectionState(router))
-    }
-    val contentDescriptionRes = remember(connectionState) {
-        computeContentDescriptionRes(connectionState)
-    }
-
-    DisposableEffect(routeSelector) {
-        if (!routeSelector.isEmpty) {
-            router.addCallback(routeSelector, mediaRouterCallback)
-        }
-
-        onDispose {
-            if (!routeSelector.isEmpty) {
-                router.removeCallback(mediaRouterCallback)
-            }
-        }
-    }
-
-    if (showDialog) {
-        MediaRouteDialog(
-            router = router,
-            mediaRouteChooserDialog = mediaRouteChooserDialog,
-            mediaRouteDynamicChooserDialog = mediaRouteDynamicChooserDialog,
-            mediaRouteControllerDialog = mediaRouteControllerDialog,
-            mediaRouteDynamicControllerDialog = mediaRouteDynamicControllerDialog,
-            onDismissRequest = { showDialog = false },
-        )
-    }
+    val viewModel = viewModel<MediaRouteButtonViewModel>(
+        key = routeSelector.toString(),
+        factory = MediaRouteButtonViewModel.Factory(routeSelector),
+    )
+    val castConnectionState by viewModel.castConnectionState.collectAsState()
+    val dialogType by viewModel.dialogType.collectAsState(DialogType.None)
 
     IconButton(
-        onClick = { showDialog = true },
+        onClick = viewModel::showDialog,
         modifier = modifier,
         colors = colors,
     ) {
         CastIcon(
-            state = connectionState,
-            contentDescription = stringResource(contentDescriptionRes),
+            state = castConnectionState,
+            contentDescription = stringResource(castConnectionState.contentDescriptionRes),
         )
     }
-}
 
-@Composable
-private fun MediaRouteDialog(
-    router: MediaRouter,
-    mediaRouteChooserDialog: @Composable (onDismissRequest: () -> Unit) -> Unit,
-    mediaRouteDynamicChooserDialog: @Composable () -> Unit,
-    mediaRouteControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit,
-    mediaRouteDynamicControllerDialog: @Composable () -> Unit,
-    onDismissRequest: () -> Unit,
-) {
-    val context = LocalContext.current
-    val params = router.routerParams
-    var useDynamicGroup = false
-
-    if (params != null) {
-        if (params.isOutputSwitcherEnabled && MediaRouter.isMediaTransferEnabled()) {
-            if (SystemOutputSwitcherDialogController.showDialog(context)) {
-                return
-            }
-        }
-
-        useDynamicGroup = params.dialogType == MediaRouterParams.DIALOG_TYPE_DYNAMIC_GROUP
-    }
-
-    if (router.selectedRoute.isDefaultOrBluetooth) {
-        if (useDynamicGroup) {
-            mediaRouteDynamicChooserDialog()
-        } else {
-            mediaRouteChooserDialog(onDismissRequest)
-        }
-    } else {
-        if (useDynamicGroup) {
-            mediaRouteDynamicControllerDialog()
-        } else {
-            mediaRouteControllerDialog(onDismissRequest)
-        }
-    }
-}
-
-@Composable
-private fun rememberMediaRouterCallback(
-    action: () -> Unit,
-): MediaRouter.Callback {
-    return remember {
-        object : MediaRouter.Callback() {
-            override fun onRouteAdded(router: MediaRouter, route: RouteInfo) {
-                action()
-            }
-
-            override fun onRouteRemoved(router: MediaRouter, route: RouteInfo) {
-                action()
-            }
-
-            override fun onRouteChanged(router: MediaRouter, route: RouteInfo) {
-                action()
-            }
-
-            override fun onRouteSelected(router: MediaRouter, route: RouteInfo, reason: Int) {
-                action()
-            }
-
-            override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
-                action()
-            }
-
-            override fun onProviderAdded(router: MediaRouter, provider: MediaRouter.ProviderInfo) {
-                action()
-            }
-
-            override fun onProviderRemoved(
-                router: MediaRouter,
-                provider: MediaRouter.ProviderInfo
-            ) {
-                action()
-            }
-
-            override fun onProviderChanged(
-                router: MediaRouter,
-                provider: MediaRouter.ProviderInfo
-            ) {
-                action()
-            }
-        }
-    }
-}
-
-private fun computeConnectionState(router: MediaRouter): CastConnectionState {
-    val selectedRoute = router.selectedRoute
-    val isRemote = !selectedRoute.isDefaultOrBluetooth
-
-    return if (isRemote) {
-        when (selectedRoute.connectionState) {
-            RouteInfo.CONNECTION_STATE_CONNECTED -> CastConnectionState.Connected
-            RouteInfo.CONNECTION_STATE_CONNECTING -> CastConnectionState.Connecting
-            RouteInfo.CONNECTION_STATE_DISCONNECTED -> CastConnectionState.Disconnected
-            else -> error("Unknown connection state: ${selectedRoute.connectionState}")
-        }
-    } else {
-        CastConnectionState.Disconnected
-    }
-}
-
-@StringRes
-private fun computeContentDescriptionRes(connectionState: CastConnectionState): Int {
-    return when (connectionState) {
-        CastConnectionState.Connected -> R.string.mr_cast_button_connected
-        CastConnectionState.Connecting -> R.string.mr_cast_button_connecting
-        CastConnectionState.Disconnected -> R.string.mr_cast_button_disconnected
+    when (dialogType) {
+        DialogType.Chooser -> mediaRouteChooserDialog(viewModel::hideDialog)
+        DialogType.DynamicChooser -> mediaRouteDynamicChooserDialog()
+        DialogType.Controller -> mediaRouteControllerDialog(viewModel::hideDialog)
+        DialogType.DynamicController -> mediaRouteDynamicControllerDialog()
+        DialogType.None -> Unit
     }
 }
