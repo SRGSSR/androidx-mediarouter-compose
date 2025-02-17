@@ -115,7 +115,7 @@ fun MediaRouteControllerDialog(
             }
 
             override fun onRouteVolumeChanged(router: MediaRouter, route: RouteInfo) {
-                // TODO
+                mediaRouterCallbackTriggered++
             }
         }
     }
