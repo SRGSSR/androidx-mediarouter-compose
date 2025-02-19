@@ -36,6 +36,16 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.PI
 import kotlin.math.atan
 
+/**
+ * Display a Cast icon, based on the current connection state to Cast. If [state] is:
+ *
+ * - [CastConnectionState.Disconnected], a icon is displayed, showing just a border, with three arcs
+ * in the bottom left corner.
+ * - [CastConnectionState.Connected], the same icon is displayed, with the addition of a filled
+ * inner rectangle.
+ * - [CastConnectionState.Connecting], the same icon as for [CastConnectionState.Disconnected] is
+ * displayed, but the arcs are moving outwards.
+ */
 @Composable
 @Suppress("LongMethod")
 internal fun CastIcon(
@@ -45,6 +55,18 @@ internal fun CastIcon(
     color: Color = LocalContentColor.current,
     strokeWidth: Dp = 2.dp,
 ) {
+    // Three arcs are displayed in the bottom left corner of the icon, in all states:
+    // - 'start' is the innermost one.
+    // - 'end' is the outermost one.
+    // - 'middle' is the one in between.
+    //
+    // If the state is 'Connecting', two additional arcs are defined to support the animation. By
+    // default, they are displayed on top of the 'start' arc.
+    // When the animation is running, the following happens:
+    // - 'middle' moves to 'end'.
+    // - one of the additional 'start' moves to 'end'.
+    // - the other additional 'start' moves to 'middle', after a small delay.
+
     val infiniteTransition = rememberInfiniteTransition()
     val radiusDeltaMiddleToEnd by infiniteTransition.animateFloat(
         state = state,
@@ -92,8 +114,15 @@ internal fun CastIcon(
 
         drawBorder(color, strokeWidthPx)
 
-        drawCornerArc(color, arcCenter, radius = 3f * arcUnitWidth)
+        // 'start' arc
+        drawArc(
+            color = color,
+            center = arcCenter,
+            radius1 = 0f,
+            radius2 = 3f * arcUnitWidth,
+        )
 
+        // 'middle' arc
         drawArc(
             color = color,
             center = arcCenter,
@@ -101,6 +130,7 @@ internal fun CastIcon(
             radius2 = (5f + radiusDeltaMiddleToEnd) * arcUnitWidth,
         )
 
+        // 'end' arc
         drawArc(
             color = color,
             center = arcCenter,
@@ -115,6 +145,7 @@ internal fun CastIcon(
                 strokeWidth = strokeWidthPx,
             )
         } else if (state == CastConnectionState.Connecting) {
+            // 'start' arc that moves to 'end'
             drawArc(
                 color = color,
                 center = arcCenter,
@@ -122,6 +153,7 @@ internal fun CastIcon(
                 radius2 = (1f + radiusDeltaStartToEnd) * arcUnitWidth,
             )
 
+            // 'start' arc that moves to 'middle'
             drawArc(
                 color = color,
                 center = arcCenter,
@@ -192,24 +224,6 @@ private fun DrawScope.drawBorder(
     )
 }
 
-private fun DrawScope.drawCornerArc(
-    color: Color,
-    center: Offset,
-    radius: Float,
-) {
-    val path = Path()
-    path.moveTo(center.x, center.y)
-    path.arcTo(
-        rect = Rect(center, radius),
-        startAngleDegrees = -90f,
-        sweepAngleDegrees = 90f,
-        forceMoveTo = false,
-    )
-    path.close()
-
-    drawPath(path, color)
-}
-
 private fun DrawScope.drawArc(
     color: Color,
     center: Offset,
@@ -218,19 +232,13 @@ private fun DrawScope.drawArc(
 ) {
     val path = Path()
     path.arcTo(
-        rect = Rect(
-            center = center,
-            radius = radius1,
-        ),
+        rect = Rect(center, radius1),
         startAngleDegrees = 0f,
         sweepAngleDegrees = -90f,
         forceMoveTo = false,
     )
     path.arcTo(
-        rect = Rect(
-            center = center,
-            radius = radius2,
-        ),
+        rect = Rect(center, radius2),
         startAngleDegrees = -90f,
         sweepAngleDegrees = 90f,
         forceMoveTo = false,
@@ -258,10 +266,7 @@ private fun DrawScope.drawConnectedRect(
     path.lineTo(width - doubleStrokeWidth, height - doubleStrokeWidth)
     path.lineTo(arcsSize, height - doubleStrokeWidth)
     path.arcToRad(
-        rect = Rect(
-            center = center,
-            radius = arcsSize,
-        ),
+        rect = Rect(center, arcsSize),
         startAngleRadians = startAngle,
         sweepAngleRadians = sweepAngle,
         forceMoveTo = false,
