@@ -70,12 +70,12 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Run Unit Tests
-        run: ./gradlew koverXmlReport
+        run: ./gradlew koverXmlReportDebug
       - name: Report Code Coverage
         if: ${{ github.event_name == 'pull_request' }}
         uses: madrapps/jacoco-report@v1.7.1
         with:
-          paths: ${{ github.workspace }}/**/build/reports/kover/report.xml
+          paths: ${{ github.workspace }}/**/build/reports/kover/reportDebug.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 0
           min-coverage-changed-files: 0

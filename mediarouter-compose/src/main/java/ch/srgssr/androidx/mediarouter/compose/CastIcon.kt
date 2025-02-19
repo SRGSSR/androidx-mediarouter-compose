@@ -164,12 +164,6 @@ internal fun CastIcon(
     }
 }
 
-internal enum class CastConnectionState {
-    Connected,
-    Connecting,
-    Disconnected,
-}
-
 @Composable
 private fun InfiniteTransition.animateFloat(
     state: CastConnectionState,
