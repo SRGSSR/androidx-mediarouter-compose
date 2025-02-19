@@ -1,7 +1,6 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import androidx.annotation.StringRes
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
@@ -13,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.mediarouter.R
@@ -80,10 +78,7 @@ fun MediaRouteButton(
     val router = remember { MediaRouter.getInstance(context) }
     val mediaRouterCallback = rememberMediaRouterCallback { mediaRouterCallbackTriggered++ }
     val connectionState by remember(mediaRouterCallbackTriggered) {
-        mutableIntStateOf(computeConnectionState(router))
-    }
-    val icon = remember(connectionState) {
-        computeIcon(connectionState)
+        mutableStateOf(computeConnectionState(router))
     }
     val contentDescriptionRes = remember(connectionState) {
         computeContentDescriptionRes(connectionState)
@@ -117,8 +112,8 @@ fun MediaRouteButton(
         modifier = modifier,
         colors = colors,
     ) {
-        Icon(
-            imageVector = icon,
+        CastIcon(
+            state = connectionState,
             contentDescription = stringResource(contentDescriptionRes),
         )
     }
@@ -209,26 +204,27 @@ private fun rememberMediaRouterCallback(
     }
 }
 
-private fun computeConnectionState(router: MediaRouter): Int {
+private fun computeConnectionState(router: MediaRouter): CastConnectionState {
     val selectedRoute = router.selectedRoute
     val isRemote = !selectedRoute.isDefaultOrBluetooth
 
-    return if (isRemote) selectedRoute.connectionState else RouteInfo.CONNECTION_STATE_DISCONNECTED
-}
-
-private fun computeIcon(connectionState: Int): ImageVector {
-    return when (connectionState) {
-        RouteInfo.CONNECTION_STATE_CONNECTING -> Icons.Downloading // TODO Use the proper Cast animation
-        RouteInfo.CONNECTION_STATE_CONNECTED -> Icons.CastConnected
-        else -> Icons.Cast
+    return if (isRemote) {
+        when (selectedRoute.connectionState) {
+            RouteInfo.CONNECTION_STATE_CONNECTED -> CastConnectionState.Connected
+            RouteInfo.CONNECTION_STATE_CONNECTING -> CastConnectionState.Connecting
+            RouteInfo.CONNECTION_STATE_DISCONNECTED -> CastConnectionState.Disconnected
+            else -> error("Unknown connection state: ${selectedRoute.connectionState}")
+        }
+    } else {
+        CastConnectionState.Disconnected
     }
 }
 
 @StringRes
-private fun computeContentDescriptionRes(connectionState: Int): Int {
+private fun computeContentDescriptionRes(connectionState: CastConnectionState): Int {
     return when (connectionState) {
-        RouteInfo.CONNECTION_STATE_CONNECTING -> R.string.mr_cast_button_connecting
-        RouteInfo.CONNECTION_STATE_CONNECTED -> R.string.mr_cast_button_connected
-        else -> R.string.mr_cast_button_disconnected
+        CastConnectionState.Connected -> R.string.mr_cast_button_connected
+        CastConnectionState.Connecting -> R.string.mr_cast_button_connecting
+        CastConnectionState.Disconnected -> R.string.mr_cast_button_disconnected
     }
 }

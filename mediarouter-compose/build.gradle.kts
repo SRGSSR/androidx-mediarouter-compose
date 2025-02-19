@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.mediarouter)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(platform(libs.kotlin.bom))
 
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
