@@ -1,14 +1,9 @@
 package ch.srgssr.androidx.mediarouter.compose
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,14 +17,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -45,12 +36,12 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.seconds
+import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.ChooserState
 
 /**
  * This class implements the route chooser dialog for [MediaRouter].
@@ -70,211 +61,113 @@ fun MediaRouteChooserDialog(
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
 ) {
-    var mediaRouterCallbackTriggered by remember { mutableIntStateOf(0) }
-    var chooserState by remember {
-        mutableStateOf(MediaRouteChooserDialogState.FINDING_DEVICES)
-    }
+    val viewModel = viewModel<MediaRouteChooserDialogViewModel>(
+        key = routeSelector.toString(),
+        factory = MediaRouteChooserDialogViewModel.Factory(routeSelector),
+    )
+    val showDialog by viewModel.showDialog.collectAsState()
+    val routes by viewModel.routes.collectAsState()
+    val chooserState by viewModel.chooserState.collectAsState()
+    val title by viewModel.title.collectAsState()
+    val confirmButtonLabel by viewModel.confirmButtonLabel.collectAsState()
 
-    val context = LocalContext.current
-    val router = remember { MediaRouter.getInstance(context) }
-    val mediaRouterCallback = rememberMediaRouterCallback { mediaRouterCallbackTriggered++ }
-    val routes = remember(mediaRouterCallbackTriggered) {
-        router.routes
-            .filter { route ->
-                !route.isDefaultOrBluetooth &&
-                        route.isEnabled &&
-                        route.matchesSelector(routeSelector)
-            }
-            .sortedBy { it.name }
-            .toMutableStateList()
-    }
-
-    DisposableEffect(routeSelector) {
-        router.addCallback(
-            routeSelector,
-            mediaRouterCallback,
-            MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN,
-        )
-
-        onDispose {
-            router.removeCallback(mediaRouterCallback)
-        }
-    }
-
-    DisposableEffect(context) {
-        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_OFF)
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                    onDismissRequest()
-                }
-            }
-        }
-
-        context.registerReceiver(receiver, intentFilter)
-
-        onDispose {
-            context.unregisterReceiver(receiver)
-        }
-    }
-
-    LaunchedEffect(routes) {
-        if (routes.isEmpty()) {
-            chooserState = MediaRouteChooserDialogState.FINDING_DEVICES
-
-            delay(5.seconds)
-
-            chooserState = MediaRouteChooserDialogState.NO_DEVICES_NO_WIFI_HINT
-
-            delay(15.seconds)
-
-            chooserState = MediaRouteChooserDialogState.NO_ROUTES
-
-            router.removeCallback(mediaRouterCallback)
-        } else {
-            chooserState = MediaRouteChooserDialogState.SHOWING_ROUTES
+    LaunchedEffect(showDialog) {
+        if (!showDialog) {
+            onDismissRequest()
         }
     }
 
     ChooserDialog(
         routes = routes,
         state = chooserState,
+        title = title,
+        confirmButtonLabel = confirmButtonLabel,
         modifier = modifier,
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = viewModel::hideDialog,
     )
-}
-
-@Composable
-private fun rememberMediaRouterCallback(
-    action: () -> Unit,
-): MediaRouter.Callback {
-    return remember {
-        object : MediaRouter.Callback() {
-            override fun onRouteAdded(router: MediaRouter, route: RouteInfo) {
-                action()
-            }
-
-            override fun onRouteRemoved(router: MediaRouter, route: RouteInfo) {
-                action()
-            }
-
-            override fun onRouteChanged(router: MediaRouter, route: RouteInfo) {
-                action()
-            }
-
-            override fun onRouteSelected(
-                router: MediaRouter,
-                selectedRoute: RouteInfo,
-                reason: Int,
-                requestedRoute: RouteInfo
-            ) {
-                action()
-            }
-        }
-    }
 }
 
 @Composable
 private fun ChooserDialog(
     routes: List<RouteInfo>,
-    state: MediaRouteChooserDialogState,
+    state: ChooserState,
+    title: String,
+    confirmButtonLabel: String?,
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            if (state == MediaRouteChooserDialogState.NO_ROUTES) {
-                TextButton(
-                    onClick = onDismissRequest,
-                    modifier = modifier,
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
+            if (confirmButtonLabel != null) {
+                TextButton(onClick = onDismissRequest) {
+                    Text(text = confirmButtonLabel)
                 }
             }
         },
         modifier = modifier,
         title = {
-            val titleRes = when (state) {
-                MediaRouteChooserDialogState.FINDING_DEVICES,
-                MediaRouteChooserDialogState.NO_DEVICES_NO_WIFI_HINT,
-                MediaRouteChooserDialogState.SHOWING_ROUTES -> R.string.mr_chooser_title
-
-                MediaRouteChooserDialogState.NO_ROUTES -> R.string.mr_chooser_zero_routes_found_title
-            }
-
             Text(
-                text = stringResource(titleRes),
-                modifier = modifier,
+                text = title,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
             )
         },
         text = {
-            ChooserDialogContent(
-                state = state,
-                routes = routes,
-                onRouteClick = { route ->
-                    route.select()
-                    onDismissRequest()
-                },
-            )
+            when (state) {
+                ChooserState.FindingDevices -> FindingDevices()
+                ChooserState.NoDevicesNoWifiHint -> NoDevicesNoWifiHint()
+                ChooserState.NoRoutes -> NoRoutes()
+                ChooserState.ShowingRoutes -> ShowingRoutes(
+                    routes = routes,
+                    onRouteClick = { route ->
+                        route.select()
+                        onDismissRequest()
+                    },
+                )
+            }
         },
     )
 }
 
 @Composable
-private fun ChooserDialogContent(
-    state: MediaRouteChooserDialogState,
-    routes: List<RouteInfo>,
-    modifier: Modifier = Modifier,
-    onRouteClick: (route: RouteInfo) -> Unit,
-) {
+private fun FindingDevices(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        when (state) {
-            MediaRouteChooserDialogState.FINDING_DEVICES -> FindingState()
-            MediaRouteChooserDialogState.NO_DEVICES_NO_WIFI_HINT -> NoDevicesNoWifiHint()
-            MediaRouteChooserDialogState.NO_ROUTES -> NoRoutes()
-            MediaRouteChooserDialogState.SHOWING_ROUTES -> ShowingRoutes(
-                routes = routes,
-                onRouteClick = onRouteClick,
-            )
-        }
+        Text(text = stringResource(R.string.mr_chooser_looking_for_devices))
+
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
 }
 
 @Composable
-private fun ColumnScope.FindingState() {
-    Text(text = stringResource(R.string.mr_chooser_looking_for_devices))
-
-    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-}
-
-@Composable
-private fun ColumnScope.NoDevicesNoWifiHint() {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+private fun NoDevicesNoWifiHint(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        val context = LocalContext.current
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Wifi,
+                contentDescription = stringResource(R.string.ic_media_route_learn_more_accessibility),
+            )
 
-        Icon(
-            imageVector = Icons.Wifi,
-            contentDescription = stringResource(R.string.ic_media_route_learn_more_accessibility),
-        )
+            Text(text = DeviceUtils.getDialogChooserWifiWarningDescription(LocalContext.current))
+        }
 
-        Text(text = DeviceUtils.getDialogChooserWifiWarningDescription(context))
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
-
-    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
 }
 
 @Composable
-private fun ColumnScope.NoRoutes() {
+private fun NoRoutes(modifier: Modifier = Modifier) {
     Row(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -284,53 +177,41 @@ private fun ColumnScope.NoRoutes() {
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            val context = LocalContext.current
             val uriHandler = LocalUriHandler.current
+            val url = "https://support.google.com/chromecast/?p=trouble-finding-devices"
+            val link = LinkAnnotation.Url(
+                url = url,
+                styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
+                linkInteractionListener = { uriHandler.openUri(url) },
+            )
 
-            Text(text = DeviceUtils.getDialogChooserWifiWarningDescription(context))
+            Text(text = DeviceUtils.getDialogChooserWifiWarningDescription(LocalContext.current))
 
-            LearnMoreLink(
-                url = "https://support.google.com/chromecast/?p=trouble-finding-devices",
-                onUrlClick = uriHandler::openUri,
+            Text(
+                text = buildAnnotatedString {
+                    withLink(link) {
+                        append(stringResource(R.string.mr_chooser_wifi_learn_more))
+                    }
+                },
             )
         }
     }
 }
 
 @Composable
-private fun LearnMoreLink(
-    url: String,
-    modifier: Modifier = Modifier,
-    onUrlClick: (url: String) -> Unit,
-) {
-    val link = LinkAnnotation.Url(
-        url = url,
-        styles = TextLinkStyles(style = SpanStyle(color = MaterialTheme.colorScheme.primary)),
-        linkInteractionListener = { onUrlClick(url) },
-    )
-
-    Text(
-        text = buildAnnotatedString {
-            withLink(link) {
-                append(stringResource(R.string.mr_chooser_wifi_learn_more))
-            }
-        },
-        modifier = modifier,
-    )
-}
-
-@Composable
-private fun ColumnScope.ShowingRoutes(
+private fun ShowingRoutes(
     routes: List<RouteInfo>,
+    modifier: Modifier = Modifier,
     onRouteClick: (route: RouteInfo) -> Unit,
 ) {
-    LazyColumn {
+    LazyColumn(modifier = modifier) {
         items(
             items = routes,
             key = { it.id },
         ) { route ->
             RouteItem(
                 route = route,
+                modifier = Modifier.animateItem(),
                 onRouteClick = onRouteClick,
             )
         }
@@ -402,20 +283,15 @@ private fun RouteItem(
     )
 }
 
-enum class MediaRouteChooserDialogState {
-    FINDING_DEVICES,
-    SHOWING_ROUTES,
-    NO_DEVICES_NO_WIFI_HINT,
-    NO_ROUTES,
-}
-
 @Preview
 @Composable
 private fun ChooserDialogFindingDevicesPreview() {
     MaterialTheme {
         ChooserDialog(
             routes = emptyList(),
-            state = MediaRouteChooserDialogState.FINDING_DEVICES,
+            state = ChooserState.FindingDevices,
+            title = stringResource(R.string.mr_chooser_title),
+            confirmButtonLabel = null,
             onDismissRequest = {},
         )
     }
@@ -427,7 +303,9 @@ private fun ChooserDialogNoDevicesNoWifiHintPreview() {
     MaterialTheme {
         ChooserDialog(
             routes = emptyList(),
-            state = MediaRouteChooserDialogState.NO_DEVICES_NO_WIFI_HINT,
+            state = ChooserState.NoDevicesNoWifiHint,
+            title = stringResource(R.string.mr_chooser_title),
+            confirmButtonLabel = null,
             onDismissRequest = {},
         )
     }
@@ -439,7 +317,9 @@ private fun ChooserDialogNoRoutesPreview() {
     MaterialTheme {
         ChooserDialog(
             routes = emptyList(),
-            state = MediaRouteChooserDialogState.NO_ROUTES,
+            state = ChooserState.NoRoutes,
+            title = stringResource(R.string.mr_chooser_zero_routes_found_title),
+            confirmButtonLabel = stringResource(android.R.string.ok),
             onDismissRequest = {},
         )
     }
@@ -451,7 +331,9 @@ private fun ChooserDialogShowingRoutesPreview() {
     MaterialTheme {
         ChooserDialog(
             routes = emptyList(),
-            state = MediaRouteChooserDialogState.SHOWING_ROUTES,
+            state = ChooserState.ShowingRoutes,
+            title = stringResource(R.string.mr_chooser_title),
+            confirmButtonLabel = null,
             onDismissRequest = {},
         )
     }
