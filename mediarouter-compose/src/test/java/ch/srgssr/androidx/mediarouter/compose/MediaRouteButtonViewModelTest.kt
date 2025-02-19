@@ -8,12 +8,9 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.mediarouter.media.MediaControlIntent
-import androidx.mediarouter.media.MediaRouteDescriptor
 import androidx.mediarouter.media.MediaRouteProvider
-import androidx.mediarouter.media.MediaRouteProviderDescriptor
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
-import androidx.mediarouter.media.MediaRouter.RouteInfo
 import androidx.mediarouter.media.MediaRouterParams
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -41,36 +38,13 @@ class MediaRouteButtonViewModelTest {
             .addControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
             .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
             .build()
-        val providerDescriptor = MediaRouteProviderDescriptor.Builder()
-            .addRoute(
-                MediaRouteDescriptor.Builder("disconnected_route", "Disconnected route")
-                    .setConnectionState(RouteInfo.CONNECTION_STATE_DISCONNECTED)
-                    .build()
-            )
-            .addRoute(
-                MediaRouteDescriptor.Builder("connecting_route", "Connecting route")
-                    .setConnectionState(RouteInfo.CONNECTION_STATE_CONNECTING)
-                    .build()
-            )
-            .addRoute(
-                MediaRouteDescriptor.Builder("connected_route", "Connected route")
-                    .setConnectionState(RouteInfo.CONNECTION_STATE_CONNECTED)
-                    .build()
-            )
-            .addRoute(
-                MediaRouteDescriptor.Builder("invalid_state_route", "Invalid state route")
-                    .setConnectionState(Int.MAX_VALUE)
-                    .build()
-            )
-            .build()
 
         context = ApplicationProvider.getApplicationContext<Application>()
 
         // Trigger static initialization inside MediaRouter
         context.getSystemService<android.media.MediaRouter>()
 
-        provider = object : MediaRouteProvider(context) {}
-        provider.descriptor = providerDescriptor
+        provider = TestMediaRouteProvider(context)
 
         router = MediaRouter.getInstance(context)
         router.addProvider(provider)
