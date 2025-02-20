@@ -2,11 +2,13 @@ package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
 import android.os.Looper
+import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.get
 import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteProvider
@@ -24,6 +26,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.runner.RunWith
+import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -60,7 +63,7 @@ class MediaRouteChooserDialogViewModelTest {
 
         router = MediaRouter.getInstance(context)
 
-        viewModel = MediaRouteChooserDialogViewModel(context, routeSelector)
+        viewModel = MediaRouteChooserDialogViewModel(context, SavedStateHandle(), routeSelector)
     }
 
     @AfterTest
@@ -185,12 +188,14 @@ class MediaRouteChooserDialogViewModelTest {
 
     @Test
     fun `ViewModel factory creates an instance of MediaRouteChooserDialogViewModel`() {
-        val creationExtras = MutableCreationExtras()
-        creationExtras[APPLICATION_KEY] = context
+        Robolectric.buildActivity<ComponentActivity>(ComponentActivity::class.java)
+            .use { activityController ->
+                val viewModel = ViewModelProvider(
+                    owner = activityController.setup().get(),
+                    factory = MediaRouteChooserDialogViewModel.Factory(MediaRouteSelector.EMPTY),
+                ).get<ViewModel>()
 
-        val viewModel = MediaRouteChooserDialogViewModel.Factory(MediaRouteSelector.EMPTY)
-            .create(ViewModel::class.java, creationExtras)
-
-        assertIs<MediaRouteChooserDialogViewModel>(viewModel)
+                assertIs<MediaRouteChooserDialogViewModel>(viewModel)
+            }
     }
 }

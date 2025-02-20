@@ -7,9 +7,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.mediarouter.R
@@ -20,7 +22,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
@@ -29,6 +30,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class MediaRouteChooserDialogViewModel(
     private val application: Application,
+    private val savedStateHandle: SavedStateHandle,
     private val routeSelector: MediaRouteSelector,
 ) : AndroidViewModel(application) {
     enum class ChooserState {
@@ -73,7 +75,6 @@ class MediaRouteChooserDialogViewModel(
     }
 
     private val routerUpdates = MutableStateFlow(0)
-    private val _showDialog = MutableStateFlow(true)
     private val _routes = routerUpdates.map {
         router.routes
             .filter { route ->
@@ -103,7 +104,7 @@ class MediaRouteChooserDialogViewModel(
         }
     }
 
-    val showDialog = _showDialog.asStateFlow()
+    val showDialog = savedStateHandle.getStateFlow(KEY_SHOW_DIALOG, true)
     val routes = _routes.stateIn(viewModelScope, WhileSubscribed(), emptyList())
     val chooserState = _chooserState
         .stateIn(viewModelScope, WhileSubscribed(), ChooserState.FindingDevices)
@@ -123,7 +124,7 @@ class MediaRouteChooserDialogViewModel(
     }
 
     fun hideDialog() {
-        _showDialog.update { false }
+        savedStateHandle[KEY_SHOW_DIALOG] = false
     }
 
     override fun onCleared() {
@@ -131,12 +132,21 @@ class MediaRouteChooserDialogViewModel(
         application.unregisterReceiver(screenOffReceiver)
     }
 
+    private companion object {
+        private const val KEY_SHOW_DIALOG = "showDialog"
+    }
+
     class Factory(private val routeSelector: MediaRouteSelector) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             val application = checkNotNull(extras[APPLICATION_KEY])
+            val savedStateHandle = extras.createSavedStateHandle()
 
             @Suppress("UNCHECKED_CAST")
-            return MediaRouteChooserDialogViewModel(application, routeSelector) as T
+            return MediaRouteChooserDialogViewModel(
+                application = application,
+                savedStateHandle = savedStateHandle,
+                routeSelector = routeSelector,
+            ) as T
         }
     }
 

@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     implementation(platform(libs.kotlin.bom))
 
+    testImplementation(libs.androidx.activity)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.junit)

@@ -2,11 +2,13 @@ package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
 import android.os.Looper
+import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.get
 import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteProvider
 import androidx.mediarouter.media.MediaRouteSelector
@@ -18,6 +20,7 @@ import app.cash.turbine.test
 import ch.srgssr.androidx.mediarouter.compose.MediaRouteButtonViewModel.DialogType
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
+import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -49,7 +52,7 @@ class MediaRouteButtonViewModelTest {
         router = MediaRouter.getInstance(context)
         router.addProvider(provider)
 
-        viewModel = MediaRouteButtonViewModel(context, routeSelector)
+        viewModel = MediaRouteButtonViewModel(context, SavedStateHandle(), routeSelector)
     }
 
     @AfterTest
@@ -239,13 +242,15 @@ class MediaRouteButtonViewModelTest {
 
     @Test
     fun `ViewModel factory creates an instance of MediaRouteButtonViewModel`() {
-        val creationExtras = MutableCreationExtras()
-        creationExtras[APPLICATION_KEY] = context
+        Robolectric.buildActivity<ComponentActivity>(ComponentActivity::class.java)
+            .use { activityController ->
+                val viewModel = ViewModelProvider(
+                    owner = activityController.setup().get(),
+                    factory = MediaRouteButtonViewModel.Factory(MediaRouteSelector.EMPTY),
+                ).get<ViewModel>()
 
-        val viewModel = MediaRouteButtonViewModel.Factory(MediaRouteSelector.EMPTY)
-            .create(ViewModel::class.java, creationExtras)
-
-        assertIs<MediaRouteButtonViewModel>(viewModel)
+                assertIs<MediaRouteButtonViewModel>(viewModel)
+            }
     }
 
     private companion object {
