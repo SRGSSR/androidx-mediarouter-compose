@@ -1,7 +1,6 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -23,7 +22,7 @@ import kotlinx.coroutines.flow.update
 class MediaRouteButtonViewModel(
     application: Application,
     private val routeSelector: MediaRouteSelector,
-) : AndroidViewModel(application) {
+) : ViewModel() {
     enum class DialogType {
         Chooser,
         DynamicChooser,
