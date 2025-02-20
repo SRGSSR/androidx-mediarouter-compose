@@ -127,7 +127,6 @@ class MediaRouteChooserDialogViewModel(
     }
 
     override fun onCleared() {
-        _showDialog.update { true }
         router.removeCallback(mediaRouterCallback)
         application.unregisterReceiver(screenOffReceiver)
     }
