@@ -1,6 +1,6 @@
 # androidx-mediarouter-compose
 
-[![Last release](https://img.shields.io/github/v/release/SRGSSR/androidx-mediarouter-compose?label=Release)](https://github.com/SRGSSR/androidx-mediarouter-compose/releases)
+[![Last release](https://img.shields.io/github/v/release/SRGSSR/androidx-mediarouter-compose?label=Release&include_prereleases)](https://github.com/SRGSSR/androidx-mediarouter-compose/releases)
 [![Android min SDK](https://img.shields.io/badge/Android-21%2B-34A853)](https://github.com/SRGSSR/androidx-mediarouter-compose)
 [![Build status](https://img.shields.io/github/actions/workflow/status/SRGSSR/androidx-mediarouter-compose/quality.yml?label=Build)](https://github.com/SRGSSR/androidx-mediarouter-compose/actions/workflows/quality.yml)
 [![License](https://img.shields.io/github/license/SRGSSR/androidx-mediarouter-compose?label=License)](https://github.com/SRGSSR/androidx-mediarouter-compose/blob/main/LICENSE)
