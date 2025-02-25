@@ -1,10 +1,11 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.mediarouter.app.SystemOutputSwitcherDialogController
@@ -22,8 +23,9 @@ import kotlinx.coroutines.flow.update
 
 class MediaRouteButtonViewModel(
     application: Application,
+    private val savedStateHandle: SavedStateHandle,
     private val routeSelector: MediaRouteSelector,
-) : AndroidViewModel(application) {
+) : ViewModel() {
     enum class DialogType {
         Chooser,
         DynamicChooser,
@@ -36,7 +38,7 @@ class MediaRouteButtonViewModel(
     private val router = MediaRouter.getInstance(application)
 
     private val routerUpdates = MutableStateFlow(0)
-    private val showDialog = MutableStateFlow(false)
+    private val showDialog = savedStateHandle.getStateFlow(KEY_SHOW_DIALOG, false)
 
     val castConnectionState = routerUpdates
         .map { router.selectedRoute }
@@ -90,11 +92,11 @@ class MediaRouteButtonViewModel(
     }
 
     fun showDialog() {
-        showDialog.update { true }
+        savedStateHandle[KEY_SHOW_DIALOG] = true
     }
 
     fun hideDialog() {
-        showDialog.update { false }
+        savedStateHandle[KEY_SHOW_DIALOG] = false
     }
 
     override fun onCleared() {
@@ -103,12 +105,17 @@ class MediaRouteButtonViewModel(
         }
     }
 
+    private companion object {
+        private const val KEY_SHOW_DIALOG = "showDialog"
+    }
+
     class Factory(private val routeSelector: MediaRouteSelector) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             val application = checkNotNull(extras[APPLICATION_KEY])
+            val savedStateHandle = extras.createSavedStateHandle()
 
             @Suppress("UNCHECKED_CAST")
-            return MediaRouteButtonViewModel(application, routeSelector) as T
+            return MediaRouteButtonViewModel(application, savedStateHandle, routeSelector) as T
         }
     }
 

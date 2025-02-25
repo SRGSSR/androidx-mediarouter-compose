@@ -18,6 +18,7 @@ robolectric = "4.14.1"
 turbine = "1.2.0"
 
 [libraries]
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidx-compose" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
