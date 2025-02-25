@@ -11,6 +11,7 @@ androidx-test-core = "1.6.1"
 androidx-test-ext-junit = "1.2.1"
 coil = "3.1.0"
 detekt = "1.23.8"
+dokka = "2.0.0"
 junit = "4.13.2"
 kotlin = "2.1.10"
 kotlinx-coroutines = "1.10.1"
@@ -50,6 +51,8 @@ android-application = { id = "com.android.application", version.ref = "android-g
 android-compose-screenshot = { id = "com.android.compose.screenshot", version.ref = "android-compose-screenshot" }
 android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }

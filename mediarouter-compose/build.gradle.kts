@@ -1,8 +1,15 @@
+/*
+ * Copyright (c) SRG SSR. All rights reserved.
+ * License information is available from the LICENSE file.
+ */
+
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     alias(libs.plugins.android.compose.screenshot)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.kover)
@@ -53,7 +60,6 @@ android {
 
     publishing {
         singleVariant("release") {
-            withJavadocJar()
             withSourcesJar()
         }
     }
@@ -61,6 +67,18 @@ android {
 
 tasks.withType<Test>().configureEach {
     testLogging.exceptionFormat = TestExceptionFormat.FULL
+}
+
+val dokkaHtmlJar by tasks.registering(Jar::class) {
+    dependsOn(tasks.dokkaGeneratePublicationHtml)
+    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    archiveClassifier.set("html-docs")
+}
+
+val dokkaJavadocJar by tasks.registering(Jar::class) {
+    dependsOn(tasks.dokkaGeneratePublicationJavadoc)
+    from(tasks.dokkaGeneratePublicationJavadoc.flatMap { it.outputDirectory })
+    archiveClassifier.set("javadoc")
 }
 
 kover {
@@ -108,6 +126,9 @@ publishing {
         register<MavenPublication>("GitHubPackages") {
             group = "ch.srgssr.androidx.mediarouter"
             version = providers.environmentVariable("VERSION_NAME").getOrElse("dev")
+
+            artifact(dokkaHtmlJar)
+            artifact(dokkaJavadocJar)
 
             afterEvaluate {
                 from(components["release"])
