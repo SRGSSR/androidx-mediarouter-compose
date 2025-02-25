@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) SRG SSR. All rights reserved.
+ * License information is available from the LICENSE file.
+ */
+
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
@@ -21,16 +26,48 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
+/**
+ * [ViewModel] exposing useful information for building [MediaRouteButton].
+ *
+ * @param application The [Application] instance.
+ * @param savedStateHandle The [SavedStateHandle] instance.
+ * @param routeSelector The media route selector for filtering the routes that the user can select
+ * using the media route chooser dialog.
+ *
+ * @see MediaRouteChooserDialogViewModel.Factory
+ */
 internal class MediaRouteButtonViewModel(
     application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val routeSelector: MediaRouteSelector,
 ) : ViewModel() {
+    /**
+     * The type of dialog to show.
+     */
     enum class DialogType {
+        /**
+         * Show the chooser dialog to select a route to connect to.
+         */
         Chooser,
+
+        /**
+         * Show the dynamic chooser dialog to select a route to connect to.
+         */
         DynamicChooser,
+
+        /**
+         * Show the controller dialog for the currently selected route.
+         */
         Controller,
+
+        /**
+         * Show the dynamic controller dialog for the currently selected route.
+         */
         DynamicController,
+
+        /**
+         * No dialog should be shown.
+         */
         None,
     }
 
@@ -40,6 +77,9 @@ internal class MediaRouteButtonViewModel(
     private val routerUpdates = MutableStateFlow(0)
     private val showDialog = savedStateHandle.getStateFlow(KEY_SHOW_DIALOG, false)
 
+    /**
+     * The [CastConnectionState] for the currently selected route.
+     */
     val castConnectionState = routerUpdates
         .map { router.selectedRoute }
         .map { route ->
@@ -55,6 +95,10 @@ internal class MediaRouteButtonViewModel(
             }
         }
         .stateIn(viewModelScope, WhileSubscribed(), CastConnectionState.Disconnected)
+
+    /**
+     * The type of dialog to show.
+     */
     val dialogType = combine(showDialog, routerUpdates) { showDialog, _ ->
         if (!showDialog) {
             return@combine DialogType.None
@@ -91,10 +135,16 @@ internal class MediaRouteButtonViewModel(
         }
     }
 
+    /**
+     * Show the dialog.
+     */
     fun showDialog() {
         savedStateHandle[KEY_SHOW_DIALOG] = true
     }
 
+    /**
+     * Hide the dialog.
+     */
     fun hideDialog() {
         savedStateHandle[KEY_SHOW_DIALOG] = false
     }
@@ -109,6 +159,12 @@ internal class MediaRouteButtonViewModel(
         private const val KEY_SHOW_DIALOG = "showDialog"
     }
 
+    /**
+     * Factory for [MediaRouteButtonViewModel].
+     *
+     * @param routeSelector  The media route selector for filtering the routes that the user can
+     * select using the media route chooser dialog.
+     */
     class Factory(private val routeSelector: MediaRouteSelector) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             val application = checkNotNull(extras[APPLICATION_KEY])
