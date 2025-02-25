@@ -28,3 +28,12 @@ jobs:
         run: ./gradlew publish
       - name: Create GitHub Release
         run: gh release create ${{ env.VERSION_NAME }} --draft --generate-notes mediarouter-compose/build/outputs/aar/mediarouter-compose-release.aar
+      - name: Generate Dokka documentation
+        run: ./gradlew :dokkaGenerate
+      - name: Deploy Dokka documentation
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: build/dokka/html
+          single-commit: true
+          target-folder: api
