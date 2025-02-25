@@ -118,7 +118,7 @@ class MediaRouteChooserDialogViewModelTest {
 
         viewModel.routes.test {
             assertEquals(
-                listOf("Connected route", "Disconnected route"),
+                listOf("Connected route", "Disconnected route", "Presentation display route"),
                 awaitItem().map { it.name },
             )
         }

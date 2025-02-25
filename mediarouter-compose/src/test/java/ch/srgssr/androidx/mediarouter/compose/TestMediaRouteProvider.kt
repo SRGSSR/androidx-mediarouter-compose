@@ -46,6 +46,15 @@ class TestMediaRouteProvider(context: Context) : MediaRouteProvider(context) {
                     .addControlFilter(intentFilterVideo)
                     .build()
             )
+            .addRoute(
+                MediaRouteDescriptor.Builder(
+                    "presentation_display_route",
+                    "Presentation display route"
+                )
+                    .addControlFilter(intentFilterVideo)
+                    .setPresentationDisplayId(42)
+                    .build()
+            )
             .build()
     }
 }
