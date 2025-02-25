@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) SRG SSR. All rights reserved.
+ * License information is available from the LICENSE file.
+ */
+
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
@@ -28,15 +33,43 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * [ViewModel] exposing useful information for building [MediaRouteChooserDialog].
+ *
+ * @param application The [Application] instance.
+ * @param savedStateHandle The [SavedStateHandle] instance.
+ * @param routeSelector The media route selector for filtering the routes that the user can select
+ * using the media route chooser dialog.
+ *
+ * @see MediaRouteChooserDialogViewModel.Factory
+ */
 internal class MediaRouteChooserDialogViewModel(
     private val application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val routeSelector: MediaRouteSelector,
 ) : AndroidViewModel(application) {
+    /**
+     * The state of the [MediaRouteChooserDialog].
+     */
     enum class ChooserState {
+        /**
+         * The dialog is actively searching for devices.
+         */
         FindingDevices,
+
+        /**
+         * No devices were found after an initial search, a hint might be displayed to turn on WiFi.
+         */
         NoDevicesNoWifiHint,
+
+        /**
+         * No routes matching the selector have been found.
+         */
         NoRoutes,
+
+        /**
+         * Available routes are currently being shown.
+         */
         ShowingRoutes;
 
         @VisibleForTesting
@@ -104,12 +137,33 @@ internal class MediaRouteChooserDialogViewModel(
         }
     }
 
+    /**
+     * Indicate if the dialog should be displayed or not.
+     */
     val showDialog = savedStateHandle.getStateFlow(KEY_SHOW_DIALOG, true)
+
+    /**
+     * Filtered and sorted routes available for display.
+     *
+     * @see routeSelector
+     */
     val routes = _routes.stateIn(viewModelScope, WhileSubscribed(), emptyList())
+
+    /**
+     * The state of the [MediaRouteChooserDialog].
+     */
     val chooserState = _chooserState
         .stateIn(viewModelScope, WhileSubscribed(), ChooserState.FindingDevices)
+
+    /**
+     * The title to display on the dialog.
+     */
     val title = _chooserState.map { it.title(application) }
         .stateIn(viewModelScope, WhileSubscribed(), "")
+
+    /**
+     * The label of the confirm button.
+     */
     val confirmButtonLabel = _chooserState.map { it.confirmLabel(application) }
         .stateIn(viewModelScope, WhileSubscribed(), null)
 
@@ -123,6 +177,9 @@ internal class MediaRouteChooserDialogViewModel(
         application.registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
     }
 
+    /**
+     * Hide the dialog.
+     */
     fun hideDialog() {
         savedStateHandle[KEY_SHOW_DIALOG] = false
     }
@@ -136,6 +193,12 @@ internal class MediaRouteChooserDialogViewModel(
         private const val KEY_SHOW_DIALOG = "showDialog"
     }
 
+    /**
+     * Factory for [MediaRouteChooserDialogViewModel].
+     *
+     * @param routeSelector  The media route selector for filtering the routes that the user can
+     * select using the media route chooser dialog.
+     */
     class Factory(private val routeSelector: MediaRouteSelector) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             val application = checkNotNull(extras[APPLICATION_KEY])

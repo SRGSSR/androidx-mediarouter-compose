@@ -5,6 +5,29 @@ output-reports:
     - 'TxtOutputReport'
     - 'XmlOutputReport'
 
+comments:
+  AbsentOrWrongFileLicense:
+    active: true
+
+  DeprecatedBlockTag:
+    active: true
+
+  OutdatedDocumentation:
+    active: true
+
+  UndocumentedPublicClass:
+    active: true
+    excludes: [ '**/demo/**' ]
+    ignoreDefaultCompanionObject: true
+
+  UndocumentedPublicFunction:
+    active: true
+    excludes: [ '**/demo/**' ]
+
+  UndocumentedPublicProperty:
+    active: true
+    excludes: [ '**/demo/**' ]
+
 complexity:
   LongParameterList:
     ignoreAnnotated: [ 'Composable' ]
