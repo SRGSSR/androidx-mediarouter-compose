@@ -1,15 +1,5 @@
 package ch.srgssr.androidx.mediarouter.compose
 
-import android.app.PendingIntent
-import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE
-import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY
-import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY_PAUSE
-import android.support.v4.media.session.PlaybackStateCompat.ACTION_STOP
-import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,27 +18,23 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
@@ -60,6 +46,8 @@ import coil3.compose.AsyncImage
  *
  * This dialog allows the user to control or disconnect from the currently selected route.
  *
+ * @param routeSelector The media route selector for filtering the routes that the user can select
+ * using the media route chooser dialog.
  * @param modifier The [Modifier] to be applied to this dialog.
  * @param volumeControlEnabled Whether to enable the volume slider and volume control using the
  * volume keys when the route supports it.
@@ -71,140 +59,86 @@ import coil3.compose.AsyncImage
  */
 @Composable
 fun MediaRouteControllerDialog(
+    routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
     volumeControlEnabled: Boolean = true,
     onDismissRequest: () -> Unit,
     customControlView: @Composable (() -> Unit)? = null,
 ) {
-    var mediaRouterCallbackTriggered by remember { mutableIntStateOf(0) }
-    var mediaController by remember { mutableStateOf<MediaControllerCompat?>(null) }
-    var playbackState by remember(mediaController) { mutableStateOf(mediaController?.playbackState) }
-    var description by remember(mediaController) { mutableStateOf(mediaController?.metadata?.description) }
+    val viewModel = viewModel<MediaRouteControllerDialogViewModel>(
+        key = routeSelector.toString(),
+        factory = MediaRouteControllerDialogViewModel.Factory(volumeControlEnabled),
+    )
+    val showDialog by viewModel.showDialog.collectAsState()
+    val selectedRoute by viewModel.selectedRoute.collectAsState()
+    val isDeviceGroupExpanded by viewModel.isDeviceGroupExpanded.collectAsState()
+    val showPlaybackControl by viewModel.showPlaybackControl.collectAsState()
+    val showVolumeControl by viewModel.showVolumeControl.collectAsState()
+    val imageModel by viewModel.imageModel.collectAsState()
+    val title by viewModel.title.collectAsState()
+    val subtitle by viewModel.subtitle.collectAsState()
+    val iconInfo by viewModel.iconInfo.collectAsState()
 
-    val context = LocalContext.current
-    val router = remember { MediaRouter.getInstance(context) }
-    val selectedRoute by remember(mediaRouterCallbackTriggered) {
-        mutableStateOf(router.selectedRoute)
-    }
-    val mediaControllerCallback = remember {
-        object : MediaControllerCompat.Callback() {
-            override fun onSessionDestroyed() {
-                mediaController?.unregisterCallback(this)
-                mediaController = null
-            }
-
-            override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-                playbackState = state
-                mediaRouterCallbackTriggered++
-            }
-
-            override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-                description = metadata?.description
-                mediaRouterCallbackTriggered++
-            }
-        }
-    }
-    val mediaRouterCallback = remember {
-        object : MediaRouter.Callback() {
-            override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
-                mediaRouterCallbackTriggered++
-            }
-
-            override fun onRouteChanged(router: MediaRouter, route: RouteInfo) {
-                mediaRouterCallbackTriggered++
-            }
-
-            override fun onRouteVolumeChanged(router: MediaRouter, route: RouteInfo) {
-                mediaRouterCallbackTriggered++
-            }
-        }
-    }
-
-    DisposableEffect(Unit) {
-        router.addCallback(
-            MediaRouteSelector.EMPTY,
-            mediaRouterCallback,
-            MediaRouter.CALLBACK_FLAG_UNFILTERED_EVENTS,
-        )
-
-        onDispose {
-            router.removeCallback(mediaRouterCallback)
-        }
-    }
-
-    DisposableEffect(router.mediaSessionToken) {
-        router.mediaSessionToken?.let { mediaSessionToken ->
-            mediaController = MediaControllerCompat(context, mediaSessionToken)
-            mediaController?.registerCallback(mediaControllerCallback)
-
-            mediaRouterCallbackTriggered++
-        }
-
-        onDispose {
-            mediaController?.unregisterCallback(mediaControllerCallback)
-            mediaController = null
+    LaunchedEffect(showDialog) {
+        if (!showDialog) {
+            onDismissRequest()
         }
     }
 
     ControllerDialog(
         route = selectedRoute,
         volumeControlEnabled = volumeControlEnabled,
-        playbackState = playbackState,
-        mediaController = mediaController,
-        description = description,
+        imageModel = imageModel,
+        title = title,
+        subtitle = subtitle,
+        iconInfo = iconInfo,
+        isDeviceGroupExpanded = isDeviceGroupExpanded,
+        showPlaybackControl = showPlaybackControl,
+        showVolumeControl = showVolumeControl,
         modifier = modifier,
         customControlView = customControlView,
-        onUnselectRoute = { reason ->
-            if (selectedRoute.isSelected) {
-                router.unselect(reason)
-            }
-
-            onDismissRequest()
-        },
-        onDismissRequest = onDismissRequest,
+        toggleDeviceGroup = viewModel::toggleDeviceGroup,
+        onKeyEvent = viewModel::onKeyEvent,
+        onPlaybackTitleClick = viewModel::onPlaybackTitleClick,
+        onPlaybackIconClick = viewModel::onPlaybackIconClick,
+        onStopCasting = viewModel::onStopCasting,
+        onDisconnect = viewModel::onDisconnect,
+        onDismissRequest = viewModel::hideDialog,
     )
 }
 
 @Composable
-@Suppress("CyclomaticComplexMethod", "LongMethod")
 private fun ControllerDialog(
     route: RouteInfo,
     volumeControlEnabled: Boolean,
-    playbackState: PlaybackStateCompat?,
-    mediaController: MediaControllerCompat?,
-    description: MediaDescriptionCompat?,
+    imageModel: Any?,
+    title: String?,
+    subtitle: String?,
+    iconInfo: Pair<ImageVector, String>?,
+    isDeviceGroupExpanded: Boolean,
+    showPlaybackControl: Boolean,
+    showVolumeControl: Boolean,
     modifier: Modifier = Modifier,
     customControlView: @Composable (() -> Unit)?,
-    onUnselectRoute: (reason: Int) -> Unit,
+    toggleDeviceGroup: () -> Unit,
+    onKeyEvent: (keyEvent: KeyEvent) -> Boolean,
+    onPlaybackTitleClick: () -> Unit,
+    onPlaybackIconClick: () -> Unit,
+    onStopCasting: () -> Unit,
+    onDisconnect: () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    var isDeviceGroupExpanded by remember { mutableStateOf(false) }
-
-    val isGroupVolumeUxEnabled = remember { MediaRouter.isGroupVolumeUxEnabled() }
-
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            TextButton(onClick = { onUnselectRoute(MediaRouter.UNSELECT_REASON_STOPPED) }) {
+            TextButton(onClick = onStopCasting) {
                 Text(text = stringResource(R.string.mr_controller_stop_casting))
             }
         },
-        modifier = modifier.onKeyEvent { keyEvent ->
-            if (keyEvent.key == Key.VolumeDown || keyEvent.key == Key.VolumeUp) {
-                if (keyEvent.type == KeyEventType.KeyDown && (isGroupVolumeUxEnabled || !isDeviceGroupExpanded)) {
-                    val delta = if (keyEvent.key == Key.VolumeDown) -1 else 1
-
-                    route.requestUpdateVolume(delta)
-                }
-
-                true
-            } else {
-                false
-            }
-        },
+        modifier = modifier.onKeyEvent(onKeyEvent),
         dismissButton = if (route.canDisconnect()) {
             {
-                TextButton(onClick = { onUnselectRoute(MediaRouter.UNSELECT_REASON_DISCONNECTED) }) {
+                TextButton(onClick = onDisconnect) {
                     Text(text = stringResource(R.string.mr_controller_disconnect))
                 }
             }
@@ -212,104 +146,67 @@ private fun ControllerDialog(
             null
         },
         title = {
-            Title(
-                title = route.name,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                onClose = onDismissRequest,
-            )
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = route.name,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+
+                IconButton(onClick = onDismissRequest) {
+                    Icon(
+                        imageVector = Icons.Close,
+                        contentDescription = stringResource(R.string.mr_controller_close_description),
+                    )
+                }
+            }
         },
         text = {
             ControllerDialogContent(
                 route = route,
                 volumeControlEnabled = volumeControlEnabled,
-                isGroupVolumeUxEnabled = isGroupVolumeUxEnabled,
-                playbackState = playbackState,
-                description = description,
+                imageModel = imageModel,
+                title = title,
+                subtitle = subtitle,
+                iconInfo = iconInfo,
                 isDeviceGroupExpanded = isDeviceGroupExpanded,
+                showPlaybackControl = showPlaybackControl,
+                showVolumeControl = showVolumeControl,
                 modifier = Modifier.fillMaxWidth(),
                 customControlView = customControlView,
-                onToggleDeviceGroup = { isDeviceGroupExpanded = !isDeviceGroupExpanded },
-                onPlaybackTitleClick = {
-                    mediaController?.let {
-                        it.sessionActivity?.let { pendingIntent ->
-                            try {
-                                pendingIntent.send()
-                                onDismissRequest()
-                            } catch (exception: PendingIntent.CanceledException) {
-                                Log.d(
-                                    "MediaRouteController",
-                                    "$pendingIntent was not sent, it has been canceled.",
-                                    exception,
-                                )
-                            }
-                        }
-                    }
-                },
-                onPlaybackIconClick = {
-                    if (mediaController != null && playbackState != null) {
-                        val isPlaying = playbackState.state == PlaybackStateCompat.STATE_PLAYING
-
-                        if (isPlaying && playbackState.isPauseActionSupported) {
-                            mediaController.transportControls.pause()
-                        } else if (isPlaying && playbackState.isStopActionSupported) {
-                            mediaController.transportControls.stop()
-                        } else if (!isPlaying && playbackState.isPlayActionSupported) {
-                            mediaController.transportControls.play()
-                        }
-                    }
-                },
+                onToggleDeviceGroup = toggleDeviceGroup,
+                onPlaybackTitleClick = onPlaybackTitleClick,
+                onPlaybackIconClick = onPlaybackIconClick,
             )
         },
     )
 }
 
 @Composable
-private fun Title(
-    title: String,
-    modifier: Modifier = Modifier,
-    onClose: () -> Unit,
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.weight(1f),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
-
-        IconButton(onClick = onClose) {
-            Icon(
-                imageVector = Icons.Close,
-                contentDescription = stringResource(R.string.mr_controller_close_description),
-            )
-        }
-    }
-}
-
-@Composable
 private fun ControllerDialogContent(
     route: RouteInfo,
     volumeControlEnabled: Boolean,
-    isGroupVolumeUxEnabled: Boolean,
-    playbackState: PlaybackStateCompat?,
-    description: MediaDescriptionCompat?,
+    imageModel: Any?,
+    title: String?,
+    subtitle: String?,
+    iconInfo: Pair<ImageVector, String>?,
     isDeviceGroupExpanded: Boolean,
+    showPlaybackControl: Boolean,
+    showVolumeControl: Boolean,
     modifier: Modifier = Modifier,
     customControlView: @Composable (() -> Unit)?,
     onToggleDeviceGroup: () -> Unit,
     onPlaybackTitleClick: () -> Unit,
     onPlaybackIconClick: () -> Unit,
 ) {
-    Column(modifier = modifier) {
-        val showPlaybackControl =
-            customControlView == null && (description != null || playbackState != null)
-        val showVolumeControl =
-            showVolumeControl(route, volumeControlEnabled, isGroupVolumeUxEnabled)
-        val imageModel = description?.iconBitmap?.takeIf { !it.isRecycled } ?: description?.iconUri
+    @Suppress("NoNameShadowing")
+    val showPlaybackControl = showPlaybackControl && customControlView == null
 
+    Column(modifier = modifier) {
         customControlView?.invoke()
 
         if (imageModel != null) {
@@ -334,9 +231,10 @@ private fun ControllerDialogContent(
         ) {
             if (showPlaybackControl) {
                 PlaybackControlRow(
-                    route = route,
-                    playbackState = playbackState,
-                    description = description,
+                    title = title,
+                    subtitle = subtitle,
+                    icon = iconInfo?.first,
+                    contentDescription = iconInfo?.second,
                     modifier = Modifier.fillMaxWidth(),
                     onTitleClick = onPlaybackTitleClick,
                     onIconClick = onPlaybackIconClick,
@@ -371,9 +269,10 @@ private fun ControllerDialogContent(
 
 @Composable
 private fun PlaybackControlRow(
-    route: RouteInfo,
-    playbackState: PlaybackStateCompat?,
-    description: MediaDescriptionCompat?,
+    title: CharSequence?,
+    subtitle: CharSequence?,
+    icon: ImageVector?,
+    contentDescription: String?,
     modifier: Modifier = Modifier,
     onTitleClick: () -> Unit,
     onIconClick: () -> Unit,
@@ -382,95 +281,35 @@ private fun PlaybackControlRow(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PlaybackControlTitle(
-            route = route,
-            playbackState = playbackState,
-            description = description,
+        Column(
             modifier = Modifier.clickable { onTitleClick() },
-        )
+        ) {
+            if (title != null) {
+                Text(
+                    text = title.toString(),
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
 
-        if (playbackState != null) {
-            PlaybackControlIcon(
-                playbackState = playbackState,
-                onClick = onIconClick,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PlaybackControlTitle(
-    route: RouteInfo,
-    playbackState: PlaybackStateCompat?,
-    description: MediaDescriptionCompat?,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        var title = description?.title
-        var showTitle = !title.isNullOrEmpty()
-
-        val subtitle = description?.subtitle
-        val showSubtitle = !subtitle.isNullOrEmpty()
-
-        if (route.presentationDisplayId != RouteInfo.PRESENTATION_DISPLAY_ID_NONE) {
-            title = stringResource(R.string.mr_controller_casting_screen)
-            showTitle = true
-        } else if (playbackState == null || playbackState.state == PlaybackStateCompat.STATE_NONE) {
-            title = stringResource(R.string.mr_controller_no_media_selected)
-            showTitle = true
-        } else if (!showTitle && !showSubtitle) {
-            title = stringResource(R.string.mr_controller_no_info_available)
-            showTitle = true
+            if (subtitle != null) {
+                Text(
+                    text = subtitle.toString(),
+                    maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
 
-        if (showTitle) {
-            Text(
-                text = title.toString(),
-                maxLines = 1,
-                style = MaterialTheme.typography.bodyLarge,
-            )
+        if (icon != null) {
+            IconButton(onClick = onIconClick) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = contentDescription,
+                    modifier = modifier,
+                )
+            }
         }
-
-        if (showSubtitle) {
-            Text(
-                text = subtitle.toString(),
-                maxLines = 1,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PlaybackControlIcon(
-    playbackState: PlaybackStateCompat,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val isPlaying = playbackState.state == PlaybackStateCompat.STATE_BUFFERING
-            || playbackState.state == PlaybackStateCompat.STATE_PLAYING
-
-    val icon: ImageVector
-    val contentDescription: String
-    if (isPlaying && playbackState.isPauseActionSupported) {
-        icon = Icons.Pause
-        contentDescription = stringResource(R.string.mr_controller_pause)
-    } else if (isPlaying && playbackState.isStopActionSupported) {
-        icon = Icons.Stop
-        contentDescription = stringResource(R.string.mr_controller_stop)
-    } else if (!isPlaying && playbackState.isPlayActionSupported) {
-        icon = Icons.PlayArrow
-        contentDescription = stringResource(R.string.mr_controller_play)
-    } else {
-        return
-    }
-
-    IconButton(onClick = onClick) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            modifier = modifier,
-        )
     }
 }
 
@@ -580,22 +419,3 @@ private fun DeviceGroup(
         }
     }
 }
-
-private fun showVolumeControl(
-    route: RouteInfo,
-    volumeControlEnabled: Boolean,
-    isGroupVolumeUxEnabled: Boolean,
-): Boolean {
-    return route.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
-            && (isGroupVolumeUxEnabled || !(route.isGroup && route.memberRoutes.size > 1))
-            && volumeControlEnabled
-}
-
-private val PlaybackStateCompat.isPlayActionSupported: Boolean
-    get() = actions and (ACTION_PLAY or ACTION_PLAY_PAUSE) != 0L
-
-private val PlaybackStateCompat.isPauseActionSupported: Boolean
-    get() = actions and (ACTION_PAUSE or ACTION_PLAY_PAUSE) != 0L
-
-private val PlaybackStateCompat.isStopActionSupported: Boolean
-    get() = actions and ACTION_STOP != 0L
