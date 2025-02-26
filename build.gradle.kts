@@ -40,6 +40,8 @@ allprojects {
                 }
 
                 dokkaSourceSets.findByName("main")?.apply {
+                    includes.from(layout.settingsDirectory.file("docs/${this@allprojects.name}.md"))
+
                     externalDocumentationLinks.register("kotlinx.coroutines") {
                         url("https://kotlinlang.org/api/kotlinx.coroutines")
                         packageListUrl("https://kotlinlang.org/api/kotlinx.coroutines/package-list")
@@ -52,6 +54,12 @@ allprojects {
                 }
             }
         }
+    }
+}
+
+dokka {
+    dokkaPublications.html {
+        includes.from(layout.settingsDirectory.file("docs/${project.name}.md"))
     }
 }
 
