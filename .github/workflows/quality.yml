@@ -152,3 +152,17 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
       - name: Publish to Maven local
         run: ./gradlew publishToMavenLocal
+
+  generate-documentation:
+    name: Generate documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Generate documentation
+        run: ./gradlew :dokkaGenerate

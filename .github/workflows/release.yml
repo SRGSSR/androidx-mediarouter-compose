@@ -36,4 +36,3 @@ jobs:
           branch: gh-pages
           folder: build/dokka/html
           single-commit: true
-          target-folder: api
