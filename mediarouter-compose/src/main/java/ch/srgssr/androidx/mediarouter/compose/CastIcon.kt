@@ -53,7 +53,8 @@ internal fun CastIcon(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     color: Color = LocalContentColor.current,
-    strokeWidth: Dp = 2.dp,
+    size: Dp = 24.dp,
+    strokeWidth: Dp = size / 12,
 ) {
     // Three arcs are displayed in the bottom left corner of the icon, in all states:
     // - 'start' is the innermost one.
@@ -96,7 +97,7 @@ internal fun CastIcon(
 
     Canvas(
         modifier = modifier
-            .size(24.dp)
+            .size(size)
             .aspectRatio(9f / 7f)
             .then(
                 if (contentDescription != null) {
@@ -109,8 +110,8 @@ internal fun CastIcon(
                 }
             ),
     ) {
-        val arcUnitWidth = size.height * ArcHeightRatio / ArcUnitCount
-        val arcCenter = Offset(0f, size.height)
+        val arcUnitWidth = this.size.height * ArcHeightRatio / ArcUnitCount
+        val arcCenter = Offset(0f, this.size.height)
 
         drawBorder(color, strokeWidthPx)
 

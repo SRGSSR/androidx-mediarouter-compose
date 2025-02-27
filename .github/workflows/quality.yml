@@ -90,6 +90,49 @@ jobs:
           pass-emoji: 🟢
           fail-emoji: 🔴
 
+  screenshot-test:
+    name: Screenshot Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ env.WORKFLOW_PAT }}
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          # TODO use java-version-file when the corresponding PR is merged
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Run Screenshot Tests
+        id: validate_screenshots
+        continue-on-error: true
+        run: ./gradlew validateDebugScreenshotTest
+      - name: Generate new screenshots
+        id: update_screenshots
+        if: env.WORKFLOW_PAT != '' && steps.validate_screenshots.outcome == 'failure' && github.event_name == 'pull_request'
+        run: ./gradlew updateDebugScreenshotTest
+      - name: Push new screenshots
+        if: steps.update_screenshots.outcome == 'success'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          file_pattern: '*/*.png'
+          disable_globbing: true
+          commit_message: "Update screenshots"
+      # If the WORKFLOW_PAT secret is not available (ie. from forks), the push above won't trigger a CI build.
+      # So instead, we ask the contributor to manually generate and push the new screenshots.
+      - name: Request screenshots to be updated
+        if: env.WORKFLOW_PAT == '' && steps.validate_screenshots.outcome == 'failure' && github.event_name == 'pull_request'
+        run: |
+          echo "::error ::Screenshots are outdated. Run './gradlew updateDebugScreenshotTest' to update them and push the changes."
+          exit 1
+
   publish-to-maven-local:
     name: Publish to Maven local
     runs-on: ubuntu-latest
