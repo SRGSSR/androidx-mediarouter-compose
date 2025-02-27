@@ -1,6 +1,7 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.graphics.drawable.Drawable
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -88,7 +89,8 @@ fun MediaRouteChooserDialog(
 }
 
 @Composable
-private fun ChooserDialog(
+@VisibleForTesting
+internal fun ChooserDialog(
     routes: List<RouteInfo>,
     state: ChooserState,
     title: String,

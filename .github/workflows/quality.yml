@@ -82,6 +82,38 @@ jobs:
           pass-emoji: 🟢
           fail-emoji: 🔴
 
+  screenshot-test:
+    name: Screenshot Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          # TODO use java-version-file when the corresponding PR is merged
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Run Screenshot Tests
+        id: validate_screenshots
+        continue-on-error: true
+        run: ./gradlew validateDebugScreenshotTest
+      - name: Generate new screenshots
+        id: update_screenshots
+        if: steps.validate_screenshots.outcome == 'failure' # && github.event_name == 'pull_request'
+        run: ./gradlew updateDebugScreenshotTest
+      - name: Push new screenshots
+        if: steps.update_screenshots.outcome == 'success' # && github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          file_pattern: '*/*.png'
+          disable_globbing: true
+          commit_message: "Update screenshots"
+
   publish-to-maven-local:
     name: Publish to Maven local
     runs-on: ubuntu-latest
