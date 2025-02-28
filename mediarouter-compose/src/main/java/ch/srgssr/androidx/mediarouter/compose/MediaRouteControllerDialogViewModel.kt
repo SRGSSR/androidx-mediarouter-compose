@@ -91,7 +91,7 @@ internal class MediaRouteControllerDialogViewModel(
         } else if (mediaDescription?.title.isNullOrEmpty() && mediaDescription?.subtitle.isNullOrEmpty()) {
             application.getString(R.string.mr_controller_no_info_available)
         } else {
-            mediaDescription.title?.toString()
+            mediaDescription?.title?.toString()
         }
     }.stateIn(viewModelScope, WhileSubscribed(), null)
     val subtitle = mediaDescription.map { it?.subtitle?.toString() }
@@ -147,7 +147,7 @@ internal class MediaRouteControllerDialogViewModel(
         _isDeviceGroupExpanded.update { !it }
     }
 
-    fun onStopCasting() {
+    fun stopCasting() {
         if (selectedRoute.value.isSelected) {
             router.unselect(MediaRouter.UNSELECT_REASON_STOPPED)
         }
@@ -155,7 +155,7 @@ internal class MediaRouteControllerDialogViewModel(
         hideDialog()
     }
 
-    fun onDisconnect() {
+    fun disconnect() {
         if (selectedRoute.value.isSelected) {
             router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
         }
@@ -178,7 +178,7 @@ internal class MediaRouteControllerDialogViewModel(
         }
     }
 
-    fun onPlaybackTitleClick() {
+    fun startSessionActivity() {
         mediaController?.sessionActivity?.let { pendingIntent ->
             try {
                 pendingIntent.send()
@@ -194,19 +194,16 @@ internal class MediaRouteControllerDialogViewModel(
     }
 
     fun onPlaybackIconClick() {
-        val mediaController = mediaController
-        val playbackState = playbackState.value
+        val mediaController = mediaController ?: return
+        val playbackState = playbackState.value ?: return
+        val isPlaying = playbackState.state == PlaybackStateCompat.STATE_PLAYING
 
-        if (mediaController != null && playbackState != null) {
-            val isPlaying = playbackState.state == PlaybackStateCompat.STATE_PLAYING
-
-            if (isPlaying && playbackState.isPauseActionSupported) {
-                mediaController.transportControls.pause()
-            } else if (isPlaying && playbackState.isStopActionSupported) {
-                mediaController.transportControls.stop()
-            } else if (!isPlaying && playbackState.isPlayActionSupported) {
-                mediaController.transportControls.play()
-            }
+        if (isPlaying && playbackState.isPauseActionSupported) {
+            mediaController.transportControls.pause()
+        } else if (isPlaying && playbackState.isStopActionSupported) {
+            mediaController.transportControls.stop()
+        } else if (!isPlaying && playbackState.isPlayActionSupported) {
+            mediaController.transportControls.play()
         }
     }
 

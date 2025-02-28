@@ -46,7 +46,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @BeforeTest
     fun before() {
-        context = ApplicationProvider.getApplicationContext<Application>()
+        context = ApplicationProvider.getApplicationContext()
 
         // Trigger static initialization inside MediaRouter
         context.getSystemService<android.media.MediaRouter>()
@@ -546,13 +546,13 @@ class MediaRouteControllerDialogViewModelTest {
     }
 
     @Test
-    fun `on stop casting`() = runTest {
+    fun `stop casting`() = runTest {
         viewModel.showDialog.test {
             assertFalse(router.routes[0].isSelected)
             assertTrue(router.routes[2].isSelected)
             assertTrue(awaitItem())
 
-            viewModel.onStopCasting()
+            viewModel.stopCasting()
 
             assertTrue(router.routes[0].isSelected)
             assertFalse(router.routes[2].isSelected)
@@ -561,13 +561,13 @@ class MediaRouteControllerDialogViewModelTest {
     }
 
     @Test
-    fun `on disconnect`() = runTest {
+    fun disconnect() = runTest {
         viewModel.showDialog.test {
             assertFalse(router.routes[0].isSelected)
             assertTrue(router.routes[2].isSelected)
             assertTrue(awaitItem())
 
-            viewModel.onDisconnect()
+            viewModel.disconnect()
 
             assertTrue(router.routes[0].isSelected)
             assertFalse(router.routes[2].isSelected)
@@ -604,7 +604,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `ViewModel factory creates an instance of MediaRouteControllerDialogViewModel`() {
-        Robolectric.buildActivity<ComponentActivity>(ComponentActivity::class.java)
+        Robolectric.buildActivity(ComponentActivity::class.java)
             .use { activityController ->
                 val viewModel = ViewModelProvider(
                     owner = activityController.setup().get(),

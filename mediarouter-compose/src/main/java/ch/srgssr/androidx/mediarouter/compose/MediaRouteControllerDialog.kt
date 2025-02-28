@@ -99,10 +99,10 @@ fun MediaRouteControllerDialog(
         customControlView = customControlView,
         toggleDeviceGroup = viewModel::toggleDeviceGroup,
         onKeyEvent = viewModel::onKeyEvent,
-        onPlaybackTitleClick = viewModel::onPlaybackTitleClick,
+        onPlaybackTitleClick = viewModel::startSessionActivity,
         onPlaybackIconClick = viewModel::onPlaybackIconClick,
-        onStopCasting = viewModel::onStopCasting,
-        onDisconnect = viewModel::onDisconnect,
+        onStopCasting = viewModel::stopCasting,
+        onDisconnect = viewModel::disconnect,
         onDismissRequest = viewModel::hideDialog,
     )
 }
