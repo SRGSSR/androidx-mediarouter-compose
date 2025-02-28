@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlin.time.Duration.Companion.seconds
 
-class MediaRouteChooserDialogViewModel(
+internal class MediaRouteChooserDialogViewModel(
     private val application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val routeSelector: MediaRouteSelector,

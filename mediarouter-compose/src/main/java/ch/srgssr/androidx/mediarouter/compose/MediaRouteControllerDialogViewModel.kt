@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-class MediaRouteControllerDialogViewModel(
+internal class MediaRouteControllerDialogViewModel(
     private val application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val volumeControlEnabled: Boolean,
