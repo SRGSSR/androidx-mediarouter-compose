@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
-class MediaRouteButtonViewModel(
+internal class MediaRouteButtonViewModel(
     application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val routeSelector: MediaRouteSelector,

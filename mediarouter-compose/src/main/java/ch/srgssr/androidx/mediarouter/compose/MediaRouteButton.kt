@@ -57,6 +57,7 @@ fun MediaRouteButton(
     mediaRouteDynamicChooserDialog: @Composable () -> Unit = {}, // TODO
     mediaRouteControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = { onDismissRequest ->
         MediaRouteControllerDialog(
+            routeSelector = routeSelector,
             onDismissRequest = onDismissRequest,
         )
     },
