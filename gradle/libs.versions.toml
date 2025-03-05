@@ -1,4 +1,5 @@
 [versions]
+android-compose-screenshot = "0.0.1-alpha09"
 android-gradle-plugin = "8.9.0"
 androidx-activity = "1.10.1"
 androidx-compose = "2025.02.00"
@@ -46,6 +47,7 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
+android-compose-screenshot = { id = "com.android.compose.screenshot", version.ref = "android-compose-screenshot" }
 android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

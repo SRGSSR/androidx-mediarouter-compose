@@ -1,5 +1,11 @@
+/*
+ * Copyright (c) SRG SSR. All rights reserved.
+ * License information is available from the LICENSE file.
+ */
+
 package ch.srgssr.androidx.mediarouter.compose
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
@@ -70,16 +76,12 @@ fun MediaRouteButton(
     val castConnectionState by viewModel.castConnectionState.collectAsState()
     val dialogType by viewModel.dialogType.collectAsState(DialogType.None)
 
-    IconButton(
-        onClick = viewModel::showDialog,
-        modifier = modifier,
+    MediaRouteButton(
+        state = castConnectionState,
         colors = colors,
-    ) {
-        CastIcon(
-            state = castConnectionState,
-            contentDescription = stringResource(castConnectionState.contentDescriptionRes),
-        )
-    }
+        modifier = modifier,
+        onClick = viewModel::showDialog,
+    )
 
     when (dialogType) {
         DialogType.Chooser -> mediaRouteChooserDialog(viewModel::hideDialog)
@@ -87,5 +89,25 @@ fun MediaRouteButton(
         DialogType.Controller -> mediaRouteControllerDialog(viewModel::hideDialog)
         DialogType.DynamicController -> mediaRouteDynamicControllerDialog()
         DialogType.None -> Unit
+    }
+}
+
+@Composable
+@VisibleForTesting
+internal fun MediaRouteButton(
+    state: CastConnectionState,
+    colors: IconButtonColors,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier,
+        colors = colors,
+    ) {
+        CastIcon(
+            state = state,
+            contentDescription = stringResource(state.contentDescriptionRes),
+        )
     }
 }
