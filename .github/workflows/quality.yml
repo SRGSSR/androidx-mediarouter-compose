@@ -25,6 +25,8 @@ jobs:
           distribution: 'temurin'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
       - name: Run Android Lint
         run: ./gradlew lintDebug
       - name: Upload Android Lint results
@@ -47,6 +49,8 @@ jobs:
           distribution: 'temurin'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
       - name: Run Detekt
         run: ./gradlew detektDebug
       - name: Upload Detekt results
@@ -69,6 +73,8 @@ jobs:
           distribution: 'temurin'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
       - name: Run Unit Tests
         run: ./gradlew koverXmlReportDebug
       - name: Report Code Coverage
@@ -97,5 +103,7 @@ jobs:
           distribution: 'temurin'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
       - name: Publish to Maven local
         run: ./gradlew publishToMavenLocal
