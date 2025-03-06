@@ -104,7 +104,7 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.mediarouter)
+    api(libs.androidx.mediarouter)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(platform(libs.kotlin.bom))
