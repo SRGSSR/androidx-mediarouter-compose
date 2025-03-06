@@ -27,9 +27,4 @@ jobs:
       - name: Publish to GitHub Packages
         run: ./gradlew publish
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-          files: mediarouter-compose/build/outputs/aar/mediarouter-compose-release.aar
+        run: gh release create ${{ env.VERSION_NAME }} --draft --generate-notes mediarouter-compose/build/outputs/aar/mediarouter-compose-release.aar
