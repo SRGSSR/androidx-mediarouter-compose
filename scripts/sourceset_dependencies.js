@@ -1,0 +1,1 @@
+sourceset_dependencies = '{":mediarouter-compose/debug":[],":mediarouter-compose/main":[],":mediarouter-compose/release":[]}'
