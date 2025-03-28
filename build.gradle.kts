@@ -9,6 +9,7 @@ import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.dependency.analysis.gralde.plugin)
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.dokka)
     alias(libs.plugins.dokka.javadoc) apply false
@@ -57,9 +58,23 @@ allprojects {
     }
 }
 
+subprojects {
+    pluginManager.apply("com.autonomousapps.dependency-analysis")
+}
+
 dokka {
     dokkaPublications.html {
         includes.from(layout.settingsDirectory.file("docs/${project.name}.md"))
+    }
+}
+
+dependencyAnalysis {
+    issues {
+        all {
+            onAny {
+                severity("fail")
+            }
+        }
     }
 }
 
