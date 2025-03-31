@@ -60,26 +60,16 @@ fun MediaRouteButton(
             onDismissRequest = onDismissRequest,
         )
     },
-    mediaRouteDynamicChooserDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = { onDismissRequest ->
-        // TODO Implement the correct dialog (see https://github.com/SRGSSR/androidx-mediarouter-compose/issues/18)
-        MediaRouteChooserDialog(
-            routeSelector = routeSelector,
-            onDismissRequest = onDismissRequest,
-        )
-    },
+    // TODO Implement the correct dialog (see https://github.com/SRGSSR/androidx-mediarouter-compose/issues/18)
+    mediaRouteDynamicChooserDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = mediaRouteChooserDialog,
     mediaRouteControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = { onDismissRequest ->
         MediaRouteControllerDialog(
             routeSelector = routeSelector,
             onDismissRequest = onDismissRequest,
         )
     },
-    mediaRouteDynamicControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = { onDismissRequest ->
-        // TODO Implement the correct dialog (see https://github.com/SRGSSR/androidx-mediarouter-compose/issues/19)
-        MediaRouteControllerDialog(
-            routeSelector = routeSelector,
-            onDismissRequest = onDismissRequest,
-        )
-    },
+    // TODO Implement the correct dialog (see https://github.com/SRGSSR/androidx-mediarouter-compose/issues/19)
+    mediaRouteDynamicControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = mediaRouteControllerDialog,
 ) {
     val viewModel = viewModel<MediaRouteButtonViewModel>(
         key = routeSelector.toString(),
