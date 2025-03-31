@@ -178,3 +178,36 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
       - name: Generate documentation
         run: ./gradlew :dokkaGenerate
+
+  analyse-dependencies:
+    name: Analyse Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version-file: .github/workflows/.java-version
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
+      - name: Analyse Dependencies
+        id: analyse_dependencies
+        continue-on-error: true
+        run: ./gradlew :buildHealth
+      - name: Comment Analysis Report
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: build/reports/dependency-analysis/build-health-report.txt
+          delete: ${{ steps.analyse_dependencies.outcome == 'success' }}
+      - name: Dependency Analysis failed
+        if: ${{ steps.analyse_dependencies.outcome == 'failure' }}
+        run: |
+          echo "::error ::Dependency Analysis failed."
+          exit 1
