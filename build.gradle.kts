@@ -75,6 +75,12 @@ dependencyAnalysis {
                 severity("fail")
             }
         }
+
+        project(":demo") {
+            onUnusedDependencies {
+                exclude(libs.androidx.media3.exoplayer.dash)
+            }
+        }
     }
 }
 
