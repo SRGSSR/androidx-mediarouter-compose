@@ -174,6 +174,9 @@ private fun Player(
                 this.player = player
             }
         },
+        update = { playerView ->
+            playerView.player = player
+        },
         modifier = modifier,
     )
 }
