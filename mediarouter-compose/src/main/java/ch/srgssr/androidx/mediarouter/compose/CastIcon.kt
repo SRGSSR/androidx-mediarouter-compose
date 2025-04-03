@@ -14,6 +14,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -103,7 +104,8 @@ internal fun CastIcon(
     Canvas(
         modifier = modifier
             .size(size)
-            .aspectRatio(9f / 7f)
+            .aspectRatio(9f / 7.5f)
+            .padding(1.dp)
             .then(
                 if (contentDescription != null) {
                     Modifier.semantics {
@@ -220,7 +222,7 @@ private fun DrawScope.drawBorder(
         pointMode = PointMode.Lines,
         color = color,
         strokeWidth = strokeWidth,
-        cap = StrokeCap.Square,
+        cap = StrokeCap.Round,
     )
 }
 
