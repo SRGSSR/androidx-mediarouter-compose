@@ -4,4 +4,6 @@
   -->
 <resources>
     <string name="app_name">AndroidX MediaRouter Compose</string>
+    <string name="use_androidx">Use AndroidX</string>
+    <string name="use_compose">Use Compose</string>
 </resources>

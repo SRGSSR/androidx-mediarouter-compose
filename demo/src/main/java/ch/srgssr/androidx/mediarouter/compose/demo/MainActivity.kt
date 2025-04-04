@@ -8,32 +8,44 @@ package ch.srgssr.androidx.mediarouter.compose.demo
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.SwitchLeft
+import androidx.compose.material.icons.filled.SwitchRight
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.mediarouter.app.MediaRouteButton
 import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteSelector
 import ch.srgssr.androidx.mediarouter.compose.MediaRouteButton
 
 class MainActivity : FragmentActivity() {
+    private val mainViewModel by viewModels<MainViewModel>()
     private val routeSelector = MediaRouteSelector.Builder()
         .addControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
         .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
@@ -45,74 +57,160 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            DemoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Row(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                    ) {
-                        MediaRouteButtonType(
-                            label = "Compose",
-                            content = {
-                                MediaRouteButton(routeSelector = routeSelector)
-                            },
-                        )
+            val player by mainViewModel.player.collectAsState()
 
-                        MediaRouteButtonType(
-                            label = "AppCompat",
-                            content = {
-                                AndroidView(
-                                    factory = { context ->
-                                        MediaRouteButton(context).apply {
-                                            routeSelector = this@MainActivity.routeSelector
-                                        }
-                                    },
-                                )
-                            },
-                        )
-                    }
-                }
+            var useCompose by remember { mutableStateOf(true) }
+
+            DemoTheme {
+                MainView(
+                    player = player,
+                    useCompose = useCompose,
+                    routeSelector = routeSelector,
+                    modifier = Modifier.fillMaxSize(),
+                    onFabClick = { useCompose = !useCompose },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun MediaRouteButtonType(
-    label: String,
+internal fun MainView(
+    player: Player,
+    useCompose: Boolean,
+    routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    onFabClick: () -> Unit,
 ) {
-    Column(
+    Scaffold(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleLarge,
-        )
+        floatingActionButton = {
+            SwitchImplementationButton(
+                useCompose = useCompose,
+                onClick = onFabClick,
+            )
+        },
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+        ) {
+            Player(
+                player = player,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(fraction = 0.5f)
+                    .align(Alignment.CenterStart),
+            )
 
-        content()
+            CastIcon(
+                useCompose = useCompose,
+                routeSelector = routeSelector,
+                modifier = Modifier
+                    .padding(all = 16.dp)
+                    .align(Alignment.TopEnd),
+            )
+        }
     }
 }
 
-@Preview
 @Composable
-private fun MediaRouteButtonTypePreview() {
-    DemoTheme {
-        MediaRouteButtonType(
-            label = "Type",
-            content = {
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Default.Cast,
-                        contentDescription = null,
-                    )
+private fun SwitchImplementationButton(
+    useCompose: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    ExtendedFloatingActionButton(
+        text = {
+            val textResId = if (useCompose) R.string.use_androidx else R.string.use_compose
+
+            Text(text = stringResource(textResId))
+        },
+        icon = {
+            val icon = if (useCompose) Icons.Default.SwitchLeft else Icons.Default.SwitchRight
+
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+            )
+        },
+        onClick = onClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun CastIcon(
+    useCompose: Boolean,
+    routeSelector: MediaRouteSelector,
+    modifier: Modifier = Modifier,
+) {
+    if (useCompose) {
+        MediaRouteButton(
+            modifier = modifier,
+            routeSelector = routeSelector,
+        )
+    } else {
+        AndroidView(
+            factory = { context ->
+                MediaRouteButton(context).apply {
+                    this.routeSelector = routeSelector
                 }
             },
+            modifier = modifier,
         )
+    }
+}
+
+@Composable
+private fun Player(
+    player: Player,
+    modifier: Modifier = Modifier,
+) {
+    AndroidView(
+        factory = { context ->
+            PlayerView(context).apply {
+                this.player = player
+            }
+        },
+        update = { playerView ->
+            playerView.player = player
+        },
+        modifier = modifier,
+    )
+}
+
+@Composable
+@PreviewLightDark
+private fun MainViewAndroidXPreview() {
+    DemoTheme {
+        Surface {
+            val context = LocalContext.current
+
+            MainView(
+                player = ExoPlayer.Builder(context).build(),
+                useCompose = false,
+                routeSelector = MediaRouteSelector.EMPTY,
+                onFabClick = {},
+            )
+        }
+    }
+}
+
+@Composable
+@PreviewLightDark
+private fun MainViewComposePreview() {
+    DemoTheme {
+        Surface {
+            val context = LocalContext.current
+
+            MainView(
+                player = ExoPlayer.Builder(context).build(),
+                useCompose = true,
+                routeSelector = MediaRouteSelector.EMPTY,
+                onFabClick = {},
+            )
+        }
     }
 }

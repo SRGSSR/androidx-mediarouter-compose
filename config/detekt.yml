@@ -47,4 +47,4 @@ style:
     ignoreAnnotated: [ 'Composable' ]
 
   UnusedPrivateMember:
-    ignoreAnnotated: [ 'Preview' ]
+    ignoreAnnotated: [ 'Preview', 'PreviewLightDark' ]
