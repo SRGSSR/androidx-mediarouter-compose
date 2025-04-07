@@ -118,6 +118,7 @@ dependencies {
     implementation(libs.androidx.media)
     api(libs.androidx.mediarouter)
     implementation(libs.coil.compose)
+    implementation(libs.coil.compose.core)
     implementation(libs.coil.network.okhttp)
     implementation(platform(libs.kotlin.bom))
     testImplementation(libs.kotlinx.coroutines.core)

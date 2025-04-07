@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,6 +46,7 @@ import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 
 /**
  * This class implements the route controller dialog for [MediaRouter].
@@ -215,13 +217,10 @@ private fun ControllerDialogContent(
         customControlView?.invoke()
 
         if (imageModel != null) {
-            AsyncImage(
-                model = imageModel,
-                contentDescription = stringResource(R.string.mr_controller_album_art),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onPlaybackTitleClick() },
-                contentScale = ContentScale.FillBounds,
+            Image(
+                imageModel = imageModel,
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onPlaybackTitleClick,
             )
         }
 
@@ -266,6 +265,34 @@ private fun ControllerDialogContent(
             )
         }
     }
+}
+
+@Composable
+private fun Image(
+    imageModel: Any?,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    var contentScale by remember(imageModel) { mutableStateOf(ContentScale.Fit) }
+
+    AsyncImage(
+        model = imageModel,
+        contentDescription = stringResource(R.string.mr_controller_album_art),
+        modifier = modifier.clickable(onClick = onClick),
+        onState = { state ->
+            if (state is AsyncImagePainter.State.Success) {
+                val width = state.painter.intrinsicSize.width
+                val height = state.painter.intrinsicSize.height
+
+                contentScale = if (width >= height) {
+                    ContentScale.FillBounds
+                } else {
+                    ContentScale.Fit
+                }
+            }
+        },
+        contentScale = contentScale,
+    )
 }
 
 @Composable
