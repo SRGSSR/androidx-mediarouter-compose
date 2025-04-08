@@ -17,16 +17,16 @@ comments:
 
   UndocumentedPublicClass:
     active: true
-    excludes: [ '**/demo/**' ]
+    excludes: [ '**/demo/**', '**/*Test.kt' ]
     ignoreDefaultCompanionObject: true
 
   UndocumentedPublicFunction:
     active: true
-    excludes: [ '**/demo/**' ]
+    excludes: [ '**/demo/**', '**/*Test.kt' ]
 
   UndocumentedPublicProperty:
     active: true
-    excludes: [ '**/demo/**' ]
+    excludes: [ '**/demo/**', '**/*Test.kt' ]
 
 complexity:
   LongParameterList:
