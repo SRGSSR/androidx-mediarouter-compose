@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) SRG SSR. All rights reserved.
+ * License information is available from the LICENSE file.
+ */
+
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
 import android.graphics.BitmapFactory
-import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.session.PlaybackStateCompat
+import android.media.MediaDescription
+import android.media.session.PlaybackState
 import android.view.KeyEvent.ACTION_DOWN
 import android.view.KeyEvent.KEYCODE_A
 import android.view.KeyEvent.KEYCODE_VOLUME_DOWN
@@ -110,7 +115,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check show playback control with media description`() = runTest {
-        viewModel.mediaDescription.update { MediaDescriptionCompat.Builder().build() }
+        viewModel.mediaDescription.update { MediaDescription.Builder().build() }
 
         viewModel.showPlaybackControl.test {
             assertTrue(awaitItem())
@@ -119,7 +124,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check show playback control with playback state`() = runTest {
-        viewModel.playbackState.update { PlaybackStateCompat.Builder().build() }
+        viewModel.playbackState.update { PlaybackState.Builder().build() }
 
         viewModel.showPlaybackControl.test {
             assertTrue(awaitItem())
@@ -129,7 +134,7 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check image model with null icon bitmap`() = runTest {
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setIconBitmap(null)
                 .build()
         }
@@ -145,7 +150,7 @@ class MediaRouteControllerDialogViewModelTest {
         bitmap.recycle()
 
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setIconBitmap(bitmap)
                 .build()
         }
@@ -160,7 +165,7 @@ class MediaRouteControllerDialogViewModelTest {
         val bitmap = BitmapFactory.decodeByteArray(byteArrayOf(), 0, 0)
 
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setIconBitmap(bitmap)
                 .build()
         }
@@ -175,7 +180,7 @@ class MediaRouteControllerDialogViewModelTest {
         val iconUri = "https://example.com/icon.png".toUri()
 
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setIconUri(iconUri)
                 .build()
         }
@@ -191,7 +196,7 @@ class MediaRouteControllerDialogViewModelTest {
         val iconUri = "https://example.com/icon.png".toUri()
 
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setIconBitmap(bitmap)
                 .setIconUri(iconUri)
                 .build()
@@ -214,8 +219,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with playback state being none`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_NONE, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_NONE, 0L, 0f)
                 .build()
         }
 
@@ -227,8 +232,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with playback state different than none`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
@@ -240,12 +245,12 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with empty media description`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
-        viewModel.mediaDescription.update { MediaDescriptionCompat.Builder().build() }
+        viewModel.mediaDescription.update { MediaDescription.Builder().build() }
 
         viewModel.title.test {
             assertEquals(context.getString(R.string.mr_controller_no_info_available), awaitItem())
@@ -255,15 +260,15 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with media description containing title only`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
         val title = "Title"
 
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setTitle(title)
                 .build()
         }
@@ -276,15 +281,15 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with media description containing subtitle only`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
         val subtitle = "Subtitle"
 
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setSubtitle(subtitle)
                 .build()
         }
@@ -296,7 +301,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check subtitle with empty media description`() = runTest {
-        viewModel.mediaDescription.update { MediaDescriptionCompat.Builder().build() }
+        viewModel.mediaDescription.update { MediaDescription.Builder().build() }
 
         viewModel.subtitle.test {
             assertNull(awaitItem())
@@ -306,7 +311,7 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check subtitle with null subtitle`() = runTest {
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setSubtitle(null)
                 .build()
         }
@@ -319,7 +324,7 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check subtitle with empty subtitle`() = runTest {
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setSubtitle("")
                 .build()
         }
@@ -334,7 +339,7 @@ class MediaRouteControllerDialogViewModelTest {
         val subtitle = "Subtitle"
 
         viewModel.mediaDescription.update {
-            MediaDescriptionCompat.Builder()
+            MediaDescription.Builder()
                 .setSubtitle(subtitle)
                 .build()
         }
@@ -347,8 +352,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and no capabilities`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_BUFFERING, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
                 .build()
         }
 
@@ -360,9 +365,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_BUFFERING, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_PAUSE)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
+                .setActions(PlaybackState.ACTION_PAUSE)
                 .build()
         }
 
@@ -377,9 +382,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and play pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_BUFFERING, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
+                .setActions(PlaybackState.ACTION_PLAY_PAUSE)
                 .build()
         }
 
@@ -394,9 +399,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and stop supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_BUFFERING, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_STOP)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
+                .setActions(PlaybackState.ACTION_STOP)
                 .build()
         }
 
@@ -411,8 +416,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and no capabilities`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
@@ -424,9 +429,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_PAUSE)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+                .setActions(PlaybackState.ACTION_PAUSE)
                 .build()
         }
 
@@ -441,9 +446,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and play pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+                .setActions(PlaybackState.ACTION_PLAY_PAUSE)
                 .build()
         }
 
@@ -458,9 +463,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and stop supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PLAYING, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_STOP)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+                .setActions(PlaybackState.ACTION_STOP)
                 .build()
         }
 
@@ -475,8 +480,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while paused and no capabilities`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PAUSED, 0L, 0f)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PAUSED, 0L, 0f)
                 .build()
         }
 
@@ -488,9 +493,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while paused and play supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PAUSED, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_PLAY)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PAUSED, 0L, 0f)
+                .setActions(PlaybackState.ACTION_PLAY)
                 .build()
         }
 
@@ -505,9 +510,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while paused and play pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackStateCompat.Builder()
-                .setState(PlaybackStateCompat.STATE_PAUSED, 0L, 0f)
-                .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE)
+            PlaybackState.Builder()
+                .setState(PlaybackState.STATE_PAUSED, 0L, 0f)
+                .setActions(PlaybackState.ACTION_PLAY_PAUSE)
                 .build()
         }
 
