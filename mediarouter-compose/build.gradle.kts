@@ -120,8 +120,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.compose.core)
     implementation(libs.coil.network.okhttp)
-    implementation(platform(libs.kotlin.bom))
-    testImplementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.androidx.activity)
     testImplementation(libs.androidx.test.core)
@@ -129,6 +127,7 @@ dependencies {
     testImplementation(libs.androidx.test.monitor)
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.robolectric.annotations)
