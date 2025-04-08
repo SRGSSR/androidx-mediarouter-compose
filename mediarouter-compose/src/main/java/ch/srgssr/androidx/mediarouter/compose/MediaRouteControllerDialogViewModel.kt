@@ -100,7 +100,7 @@ internal class MediaRouteControllerDialogViewModel(
         } else if (mediaDescription?.title.isNullOrEmpty() && mediaDescription?.subtitle.isNullOrEmpty()) {
             application.getString(R.string.mr_controller_no_info_available)
         } else {
-            mediaDescription?.title?.toString()
+            mediaDescription.title?.toString()
         }
     }.stateIn(viewModelScope, WhileSubscribed(), null)
     val subtitle = mediaDescription.map { it?.subtitle?.toString() }
