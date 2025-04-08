@@ -281,11 +281,11 @@ private fun Image(
         modifier = modifier.clickable(onClick = onClick),
         onState = { state ->
             if (state is AsyncImagePainter.State.Success) {
-                val width = state.painter.intrinsicSize.width
-                val height = state.painter.intrinsicSize.height
+                val width = state.result.image.width
+                val height = state.result.image.height
 
                 contentScale = if (width >= height) {
-                    ContentScale.FillBounds
+                    ContentScale.FillWidth
                 } else {
                     ContentScale.Fit
                 }
@@ -311,7 +311,9 @@ private fun PlaybackControlRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
-            modifier = Modifier.clickable { onTitleClick() },
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onTitleClick),
         ) {
             if (title != null) {
                 Text(
