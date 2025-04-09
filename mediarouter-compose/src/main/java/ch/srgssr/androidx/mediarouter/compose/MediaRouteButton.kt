@@ -10,13 +10,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.mediarouter.media.MediaRouteSelector
-import ch.srgssr.androidx.mediarouter.compose.MediaRouteButtonViewModel.DialogType
 
 /**
  * The media route button allows the user to select routes and to control the currently selected
@@ -48,6 +48,7 @@ import ch.srgssr.androidx.mediarouter.compose.MediaRouteButtonViewModel.DialogTy
  * @param mediaRouteControllerDialog The media route controller dialog. The provided callback should
  * be called when the dialog has to be dismissed.
  * @param mediaRouteDynamicControllerDialog The media route controller dialog for dynamic group.
+ * @param onDialogTypeChange The callback used to notify when the dialog type has changed.
  */
 @Composable
 fun MediaRouteButton(
@@ -70,6 +71,7 @@ fun MediaRouteButton(
     },
     // TODO Implement the correct dialog (see https://github.com/SRGSSR/androidx-mediarouter-compose/issues/19)
     mediaRouteDynamicControllerDialog: @Composable (onDismissRequest: () -> Unit) -> Unit = mediaRouteControllerDialog,
+    onDialogTypeChange: (dialogType: DialogType) -> Unit = {},
 ) {
     val viewModel = viewModel<MediaRouteButtonViewModel>(
         key = routeSelector.toString(),
@@ -77,6 +79,10 @@ fun MediaRouteButton(
     )
     val castConnectionState by viewModel.castConnectionState.collectAsState()
     val dialogType by viewModel.dialogType.collectAsState(DialogType.None)
+
+    LaunchedEffect(dialogType) {
+        onDialogTypeChange(dialogType)
+    }
 
     MediaRouteButton(
         state = castConnectionState,

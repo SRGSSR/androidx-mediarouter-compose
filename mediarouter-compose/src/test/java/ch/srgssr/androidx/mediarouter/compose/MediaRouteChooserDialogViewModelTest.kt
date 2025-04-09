@@ -59,7 +59,7 @@ class MediaRouteChooserDialogViewModelTest {
             .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
             .build()
 
-        context = ApplicationProvider.getApplicationContext<Application>()
+        context = ApplicationProvider.getApplicationContext()
 
         // Trigger static initialization inside MediaRouter
         context.getSystemService<android.media.MediaRouter>()
@@ -193,7 +193,7 @@ class MediaRouteChooserDialogViewModelTest {
 
     @Test
     fun `ViewModel factory creates an instance of MediaRouteChooserDialogViewModel`() {
-        Robolectric.buildActivity<ComponentActivity>(ComponentActivity::class.java)
+        Robolectric.buildActivity(ComponentActivity::class.java)
             .use { activityController ->
                 val viewModel = ViewModelProvider(
                     owner = activityController.setup().get(),

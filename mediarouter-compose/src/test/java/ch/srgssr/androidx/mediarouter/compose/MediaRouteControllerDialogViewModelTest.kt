@@ -72,6 +72,7 @@ class MediaRouteControllerDialogViewModelTest {
     @AfterTest
     fun after() {
         router.removeProvider(provider)
+        router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
     }
 
     @Test
