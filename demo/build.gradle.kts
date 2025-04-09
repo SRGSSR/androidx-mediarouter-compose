@@ -46,6 +46,7 @@ android {
         abortOnError = true
         checkAllWarnings = true
         checkDependencies = true
+        disable.add("GradleDependency")
         sarifReport = true
         warningsAsErrors = true
     }
