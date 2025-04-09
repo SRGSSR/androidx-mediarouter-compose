@@ -22,7 +22,6 @@ import androidx.mediarouter.media.MediaRouterParams
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
-import ch.srgssr.androidx.mediarouter.compose.MediaRouteButtonViewModel.DialogType
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -47,7 +46,7 @@ class MediaRouteButtonViewModelTest {
             .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
             .build()
 
-        context = ApplicationProvider.getApplicationContext<Application>()
+        context = ApplicationProvider.getApplicationContext()
 
         // Trigger static initialization inside MediaRouter
         context.getSystemService<android.media.MediaRouter>()
@@ -121,7 +120,6 @@ class MediaRouteButtonViewModelTest {
             shadowOf(Looper.getMainLooper()).idle()
 
             assertEquals(CastConnectionState.Disconnected, awaitItem())
-
         }
     }
 
@@ -247,7 +245,7 @@ class MediaRouteButtonViewModelTest {
 
     @Test
     fun `ViewModel factory creates an instance of MediaRouteButtonViewModel`() {
-        Robolectric.buildActivity<ComponentActivity>(ComponentActivity::class.java)
+        Robolectric.buildActivity(ComponentActivity::class.java)
             .use { activityController ->
                 val viewModel = ViewModelProvider(
                     owner = activityController.setup().get(),
