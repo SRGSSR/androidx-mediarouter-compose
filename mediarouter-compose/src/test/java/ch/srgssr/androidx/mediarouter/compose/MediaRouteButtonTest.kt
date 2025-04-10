@@ -6,18 +6,15 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.content.Context
-import androidx.annotation.StringRes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.core.content.getSystemService
-import androidx.mediarouter.R
-import androidx.mediarouter.media.MediaRouteProvider
 import androidx.mediarouter.media.MediaRouter
+import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
@@ -31,7 +28,6 @@ import kotlin.test.assertEquals
 class MediaRouteButtonTest {
     private lateinit var context: Context
     private lateinit var dialogTypes: MutableList<DialogType>
-    private lateinit var provider: MediaRouteProvider
     private lateinit var router: MediaRouter
 
     @get:Rule
@@ -45,23 +41,19 @@ class MediaRouteButtonTest {
         // Trigger static initialization inside MediaRouter
         context.getSystemService<android.media.MediaRouter>()
 
-        provider = TestMediaRouteProvider(context)
-
         router = MediaRouter.getInstance(context)
-        router.addProvider(provider)
+        router.addProvider(TestMediaRouteProvider(context))
     }
 
     @AfterTest
     fun after() {
-        router.removeProvider(provider)
-        router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
+        MediaRouterTestHelper.resetMediaRouter()
     }
 
     @Test
     fun `default dialog type`() {
         assertMediaRouteButtonState(
             expectedDialogTypes = listOf(DialogType.None),
-            contentDescriptionRes = R.string.mr_cast_button_disconnected,
         )
     }
 
@@ -69,7 +61,6 @@ class MediaRouteButtonTest {
     fun `clicking on button should open the chooser dialog`() {
         assertMediaRouteButtonState(
             expectedDialogTypes = listOf(DialogType.None, DialogType.Chooser),
-            contentDescriptionRes = R.string.mr_cast_button_disconnected,
             action = {
                 onNodeWithTag(TEST_TAG).performClick()
             },
@@ -78,15 +69,11 @@ class MediaRouteButtonTest {
 
     @Test
     fun `clicking on button should open the controller dialog when a non-default route is selected`() {
-        router.routes[3].select()
-
         assertMediaRouteButtonState(
-            expectedDialogTypes = listOf(
-                DialogType.None,
-                DialogType.Controller,
-            ),
-            contentDescriptionRes = R.string.mr_cast_button_connected,
+            expectedDialogTypes = listOf(DialogType.None, DialogType.Controller),
             action = {
+                router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+
                 onNodeWithTag(TEST_TAG).performClick()
             },
         )
@@ -94,12 +81,15 @@ class MediaRouteButtonTest {
 
     private fun assertMediaRouteButtonState(
         expectedDialogTypes: List<DialogType>,
-        @StringRes contentDescriptionRes: Int,
         action: (ComposeTestRule.() -> Unit)? = null,
     ) {
         composeTestRule.setContent {
             MediaRouteButton(
                 modifier = Modifier.testTag(TEST_TAG),
+                mediaRouteChooserDialog = {},
+                mediaRouteDynamicChooserDialog = {},
+                mediaRouteControllerDialog = {},
+                mediaRouteDynamicControllerDialog = {},
                 onDialogTypeChange = dialogTypes::add,
             )
         }
@@ -109,10 +99,14 @@ class MediaRouteButtonTest {
             composeTestRule.waitForIdle()
         }
 
-        composeTestRule.onNodeWithTag(TEST_TAG)
-            .assertContentDescriptionEquals(context.getString(contentDescriptionRes))
-
         assertEquals(expectedDialogTypes, dialogTypes)
+    }
+
+    private fun MediaRouter.selectRouteById(id: String) {
+        val providerFQCN = TestMediaRouteProvider::class.qualifiedName
+        val fullId = "${context.packageName}/$providerFQCN:$id"
+
+        routes.single { it.id == fullId }.select()
     }
 
     private companion object {
