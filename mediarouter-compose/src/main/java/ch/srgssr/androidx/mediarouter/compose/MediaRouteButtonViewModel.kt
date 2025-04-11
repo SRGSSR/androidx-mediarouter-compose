@@ -27,6 +27,36 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 /**
+ * The type of dialog to show.
+ */
+enum class DialogType {
+    /**
+     * Show the chooser dialog to select a route to connect to.
+     */
+    Chooser,
+
+    /**
+     * Show the dynamic chooser dialog to select a route to connect to.
+     */
+    DynamicChooser,
+
+    /**
+     * Show the controller dialog for the currently selected route.
+     */
+    Controller,
+
+    /**
+     * Show the dynamic controller dialog for the currently selected route.
+     */
+    DynamicController,
+
+    /**
+     * No dialog should be shown.
+     */
+    None,
+}
+
+/**
  * [ViewModel] exposing useful information for building [MediaRouteButton].
  *
  * @param application The [Application] instance.
@@ -41,36 +71,6 @@ internal class MediaRouteButtonViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val routeSelector: MediaRouteSelector,
 ) : ViewModel() {
-    /**
-     * The type of dialog to show.
-     */
-    enum class DialogType {
-        /**
-         * Show the chooser dialog to select a route to connect to.
-         */
-        Chooser,
-
-        /**
-         * Show the dynamic chooser dialog to select a route to connect to.
-         */
-        DynamicChooser,
-
-        /**
-         * Show the controller dialog for the currently selected route.
-         */
-        Controller,
-
-        /**
-         * Show the dynamic controller dialog for the currently selected route.
-         */
-        DynamicController,
-
-        /**
-         * No dialog should be shown.
-         */
-        None,
-    }
-
     private val mediaRouterCallback = MediaRouterCallback()
     private val router = MediaRouter.getInstance(application)
 

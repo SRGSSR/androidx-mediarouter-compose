@@ -18,9 +18,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.get
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.testing.ViewModelScenario
+import androidx.lifecycle.viewmodel.testing.viewModelScenario
 import androidx.mediarouter.R
-import androidx.mediarouter.media.MediaRouteProvider
 import androidx.mediarouter.media.MediaRouter
+import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
@@ -40,9 +42,11 @@ import kotlin.test.assertTrue
 @RunWith(AndroidJUnit4::class)
 class MediaRouteControllerDialogViewModelTest {
     private lateinit var context: Application
-    private lateinit var provider: MediaRouteProvider
     private lateinit var router: MediaRouter
-    private lateinit var viewModel: MediaRouteControllerDialogViewModel
+    private lateinit var viewModelScenario: ViewModelScenario<MediaRouteControllerDialogViewModel>
+
+    private val viewModel: MediaRouteControllerDialogViewModel
+        get() = viewModelScenario.viewModel
 
     @BeforeTest
     fun before() {
@@ -51,22 +55,20 @@ class MediaRouteControllerDialogViewModelTest {
         // Trigger static initialization inside MediaRouter
         context.getSystemService<android.media.MediaRouter>()
 
-        provider = TestMediaRouteProvider(context)
-
         router = MediaRouter.getInstance(context)
-        router.addProvider(provider)
-        router.selectRoute(router.routes[2])
+        router.addProvider(TestMediaRouteProvider(context))
+        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
 
-        viewModel = MediaRouteControllerDialogViewModel(
-            context,
-            SavedStateHandle(),
-            volumeControlEnabled = true
-        )
+        viewModelScenario = viewModelScenario {
+            MediaRouteControllerDialogViewModel(context, SavedStateHandle(), true)
+        }
     }
 
     @AfterTest
     fun after() {
-        router.removeProvider(provider)
+        viewModelScenario.close()
+
+        MediaRouterTestHelper.resetMediaRouter()
     }
 
     @Test
@@ -76,7 +78,7 @@ class MediaRouteControllerDialogViewModelTest {
         }
 
         viewModel.selectedRoute.test {
-            assertEquals(router.routes[2], awaitItem())
+            assertEquals(TestMediaRouteProvider.ROUTE_NAME_CONNECTED, awaitItem().name)
         }
 
         viewModel.isDeviceGroupExpanded.test {
@@ -204,7 +206,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check title with selected route has a presentation display id`() = runTest {
-        router.selectRoute(router.routes[6])
+        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_PRESENTATION)
 
         viewModel.title.test {
             assertEquals(context.getString(R.string.mr_controller_casting_screen), awaitItem())
@@ -548,14 +550,12 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `stop casting`() = runTest {
         viewModel.showDialog.test {
-            assertFalse(router.routes[0].isSelected)
-            assertTrue(router.routes[2].isSelected)
+            assertEquals(TestMediaRouteProvider.ROUTE_NAME_CONNECTED, router.selectedRoute.name)
             assertTrue(awaitItem())
 
             viewModel.stopCasting()
 
-            assertTrue(router.routes[0].isSelected)
-            assertFalse(router.routes[2].isSelected)
+            assertEquals("Phone", router.selectedRoute.name)
             assertFalse(awaitItem())
         }
     }
@@ -563,14 +563,12 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun disconnect() = runTest {
         viewModel.showDialog.test {
-            assertFalse(router.routes[0].isSelected)
-            assertTrue(router.routes[2].isSelected)
+            assertEquals(TestMediaRouteProvider.ROUTE_NAME_CONNECTED, router.selectedRoute.name)
             assertTrue(awaitItem())
 
             viewModel.disconnect()
 
-            assertTrue(router.routes[0].isSelected)
-            assertFalse(router.routes[2].isSelected)
+            assertEquals("Phone", router.selectedRoute.name)
             assertFalse(awaitItem())
         }
     }
@@ -613,5 +611,12 @@ class MediaRouteControllerDialogViewModelTest {
 
                 assertIs<MediaRouteControllerDialogViewModel>(viewModel)
             }
+    }
+
+    private fun MediaRouter.selectRouteById(id: String) {
+        val providerFQCN = TestMediaRouteProvider::class.qualifiedName
+        val fullId = "${context.packageName}/$providerFQCN:$id"
+
+        routes.single { it.id == fullId }.select()
     }
 }

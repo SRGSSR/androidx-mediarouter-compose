@@ -14,14 +14,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.get
 import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.testing.ViewModelScenario
+import androidx.lifecycle.viewmodel.testing.viewModelScenario
 import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteProvider
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
+import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
 import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.ChooserState
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +49,10 @@ class MediaRouteChooserDialogViewModelTest {
     private lateinit var context: Application
     private lateinit var provider: MediaRouteProvider
     private lateinit var router: MediaRouter
-    private lateinit var viewModel: MediaRouteChooserDialogViewModel
+    private lateinit var viewModelScenario: ViewModelScenario<MediaRouteChooserDialogViewModel>
+
+    private val viewModel: MediaRouteChooserDialogViewModel
+        get() = viewModelScenario.viewModel
 
     @BeforeTest
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -59,7 +64,7 @@ class MediaRouteChooserDialogViewModelTest {
             .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
             .build()
 
-        context = ApplicationProvider.getApplicationContext<Application>()
+        context = ApplicationProvider.getApplicationContext()
 
         // Trigger static initialization inside MediaRouter
         context.getSystemService<android.media.MediaRouter>()
@@ -68,15 +73,17 @@ class MediaRouteChooserDialogViewModelTest {
 
         router = MediaRouter.getInstance(context)
 
-        viewModel = MediaRouteChooserDialogViewModel(context, SavedStateHandle(), routeSelector)
+        viewModelScenario = viewModelScenario {
+            MediaRouteChooserDialogViewModel(context, SavedStateHandle(), routeSelector)
+        }
     }
 
     @AfterTest
     @OptIn(ExperimentalCoroutinesApi::class)
     fun after() {
-        router.removeProvider(provider)
+        viewModelScenario.close()
 
-        shadowOf(Looper.getMainLooper()).idle()
+        MediaRouterTestHelper.resetMediaRouter()
 
         Dispatchers.resetMain()
     }
@@ -123,8 +130,12 @@ class MediaRouteChooserDialogViewModelTest {
 
         viewModel.routes.test {
             assertEquals(
-                listOf("Connected route", "Disconnected route", "Presentation display route"),
-                awaitItem().map { it.name },
+                expected = listOf(
+                    TestMediaRouteProvider.ROUTE_NAME_CONNECTED,
+                    TestMediaRouteProvider.ROUTE_NAME_DISCONNECTED,
+                    TestMediaRouteProvider.ROUTE_NAME_PRESENTATION,
+                ),
+                actual = awaitItem().map { it.name },
             )
         }
     }
@@ -136,7 +147,8 @@ class MediaRouteChooserDialogViewModelTest {
                 assertEquals(ChooserState.FindingDevices, awaitItem())
 
                 router.addProvider(provider)
-                InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+                shadowOf(Looper.getMainLooper()).idle()
 
                 assertEquals(ChooserState.ShowingRoutes, awaitItem())
             }
@@ -193,7 +205,7 @@ class MediaRouteChooserDialogViewModelTest {
 
     @Test
     fun `ViewModel factory creates an instance of MediaRouteChooserDialogViewModel`() {
-        Robolectric.buildActivity<ComponentActivity>(ComponentActivity::class.java)
+        Robolectric.buildActivity(ComponentActivity::class.java)
             .use { activityController ->
                 val viewModel = ViewModelProvider(
                     owner = activityController.setup().get(),
