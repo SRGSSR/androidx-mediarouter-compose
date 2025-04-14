@@ -113,7 +113,7 @@ fun MediaRouteControllerDialog(
 }
 
 @Composable
-private fun ControllerDialog(
+internal fun ControllerDialog(
     route: RouteInfo,
     volumeControlEnabled: Boolean,
     imageModel: Any?,
@@ -229,11 +229,7 @@ private fun ControllerDialogContent(
             return
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             if (showPlaybackControl) {
                 PlaybackControlRow(
                     title = title,
@@ -247,7 +243,7 @@ private fun ControllerDialogContent(
             }
 
             if (showPlaybackControl && showVolumeControl) {
-                HorizontalDivider()
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             }
 
             if (showVolumeControl) {
@@ -284,6 +280,7 @@ private fun PlaybackControlRow(
 ) {
     Row(
         modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
@@ -311,7 +308,6 @@ private fun PlaybackControlRow(
                 Icon(
                     imageVector = icon,
                     contentDescription = contentDescription,
-                    modifier = modifier,
                 )
             }
         }
@@ -327,7 +323,7 @@ private fun VolumeControl(
 ) {
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         var volume by remember { mutableFloatStateOf(route.volume.toFloat()) }

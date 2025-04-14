@@ -6,9 +6,11 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.mediarouter.R
+import androidx.mediarouter.media.ScreenshotMediaRouter
 import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.ChooserState
 
 class MediaRouteChooserDialogScreenshot {
@@ -57,10 +59,11 @@ class MediaRouteChooserDialogScreenshot {
     @Composable
     @PreviewLightDark
     private fun ShowingRoutesPreview() {
+        val router = ScreenshotMediaRouter(LocalContext.current)
+
         ScreenshotTheme {
             ChooserDialog(
-                // TODO Investigate if it's possible to create custom RouteInfo to pass them here
-                routes = emptyList(),
+                routes = router.routes,
                 state = ChooserState.ShowingRoutes,
                 title = stringResource(R.string.mr_chooser_title),
                 confirmButtonLabel = null,
