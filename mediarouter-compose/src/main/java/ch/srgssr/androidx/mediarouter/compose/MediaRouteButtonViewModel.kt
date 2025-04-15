@@ -20,6 +20,7 @@ import androidx.mediarouter.media.MediaRouter.RouteInfo
 import androidx.mediarouter.media.MediaRouterParams
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -74,6 +75,7 @@ internal class MediaRouteButtonViewModel(
     private val mediaRouterCallback = MediaRouterCallback()
     private val router = MediaRouter.getInstance(application)
 
+    private val _fixedIcon = MutableStateFlow(false)
     private val routerUpdates = MutableStateFlow(0)
     private val showDialog = savedStateHandle.getStateFlow(KEY_SHOW_DIALOG, false)
 
@@ -128,6 +130,11 @@ internal class MediaRouteButtonViewModel(
             }
         }
     }.distinctUntilChanged()
+
+    /**
+     * `true` to use a static Cast icon, `false` to use a dynamic icon.
+     */
+    val fixedIcon = _fixedIcon.asStateFlow()
 
     init {
         if (!routeSelector.isEmpty) {
@@ -194,6 +201,24 @@ internal class MediaRouteButtonViewModel(
 
         override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
             routerUpdates.update { it + 1 }
+        }
+
+        override fun onProviderAdded(router: MediaRouter, provider: MediaRouter.ProviderInfo) {
+            routerUpdates.update { it + 1 }
+        }
+
+        override fun onProviderRemoved(router: MediaRouter, provider: MediaRouter.ProviderInfo) {
+            routerUpdates.update { it + 1 }
+        }
+
+        override fun onProviderChanged(router: MediaRouter, provider: MediaRouter.ProviderInfo) {
+            routerUpdates.update { it + 1 }
+        }
+
+        override fun onRouterParamsChanged(router: MediaRouter, params: MediaRouterParams?) {
+            _fixedIcon.update {
+                params?.extras?.getBoolean(MediaRouterParams.EXTRAS_KEY_FIXED_CAST_ICON) == true
+            }
         }
     }
 }

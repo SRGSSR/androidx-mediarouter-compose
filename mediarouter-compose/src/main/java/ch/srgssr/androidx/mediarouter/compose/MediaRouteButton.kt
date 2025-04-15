@@ -79,6 +79,7 @@ fun MediaRouteButton(
     )
     val castConnectionState by viewModel.castConnectionState.collectAsState()
     val dialogType by viewModel.dialogType.collectAsState(DialogType.None)
+    val fixedIcon by viewModel.fixedIcon.collectAsState()
 
     LaunchedEffect(dialogType) {
         onDialogTypeChange(dialogType)
@@ -86,6 +87,7 @@ fun MediaRouteButton(
 
     MediaRouteButton(
         state = castConnectionState,
+        fixedIcon = fixedIcon,
         colors = colors,
         modifier = modifier,
         onClick = viewModel::showDialog,
@@ -104,6 +106,7 @@ fun MediaRouteButton(
 @VisibleForTesting
 internal fun MediaRouteButton(
     state: CastConnectionState,
+    fixedIcon: Boolean,
     colors: IconButtonColors,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
@@ -114,7 +117,7 @@ internal fun MediaRouteButton(
         colors = colors,
     ) {
         CastIcon(
-            state = state,
+            state = if (fixedIcon) CastConnectionState.Disconnected else state,
             contentDescription = stringResource(state.contentDescriptionRes),
         )
     }

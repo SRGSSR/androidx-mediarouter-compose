@@ -6,8 +6,10 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
+import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -26,11 +28,14 @@ import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
+import org.robolectric.Shadows.shadowOf
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
 class MediaRouteButtonViewModelTest {
@@ -76,6 +81,10 @@ class MediaRouteButtonViewModelTest {
 
         viewModel.dialogType.test {
             assertEquals(DialogType.None, awaitItem())
+        }
+
+        viewModel.fixedIcon.test {
+            assertFalse(awaitItem())
         }
     }
 
@@ -212,6 +221,25 @@ class MediaRouteButtonViewModelTest {
                 assertEquals(DialogType.DynamicController, awaitItem())
             }
         }
+
+    @Test
+    fun `check that the fixed icon value is read from the router parameters`() = runTest {
+        viewModel.fixedIcon.test {
+            router.routerParams = MediaRouterParams.Builder()
+                .setExtras(bundleOf(MediaRouterParams.EXTRAS_KEY_FIXED_CAST_ICON to true))
+                .build()
+
+            shadowOf(Looper.getMainLooper()).idle()
+
+            router.routerParams = null
+
+            shadowOf(Looper.getMainLooper()).idle()
+
+            assertFalse(awaitItem())
+            assertTrue(awaitItem())
+            assertFalse(awaitItem())
+        }
+    }
 
     @Test(expected = IllegalStateException::class)
     fun `ViewModel factory fails to create a ViewModel without a Context`() {
