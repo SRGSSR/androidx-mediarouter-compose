@@ -57,6 +57,7 @@ import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.C
  * @param routeSelector The media route selector for filtering the routes that the user can select
  * using the media route chooser dialog.
  * @param modifier The [Modifier] to be applied to this dialog.
+ * @param title The title of the dialog. If `null`, it will be defined based on the chooser state.
  * @param onDismissRequest The action to perform when this dialog is dismissed.
  *
  * @see MediaRouteButton
@@ -65,6 +66,7 @@ import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.C
 fun MediaRouteChooserDialog(
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
+    title: String? = null,
     onDismissRequest: () -> Unit,
 ) {
     val viewModel = viewModel<MediaRouteChooserDialogViewModel>(
@@ -74,8 +76,6 @@ fun MediaRouteChooserDialog(
     val showDialog by viewModel.showDialog.collectAsState()
     val routes by viewModel.routes.collectAsState()
     val chooserState by viewModel.chooserState.collectAsState()
-    val title by viewModel.title.collectAsState()
-    val confirmButtonLabel by viewModel.confirmButtonLabel.collectAsState()
 
     LaunchedEffect(showDialog) {
         if (!showDialog) {
@@ -87,7 +87,6 @@ fun MediaRouteChooserDialog(
         routes = routes,
         state = chooserState,
         title = title,
-        confirmButtonLabel = confirmButtonLabel,
         modifier = modifier,
         onDismissRequest = viewModel::hideDialog,
     )
@@ -98,14 +97,16 @@ fun MediaRouteChooserDialog(
 internal fun ChooserDialog(
     routes: List<RouteInfo>,
     state: ChooserState,
-    title: String,
-    confirmButtonLabel: String?,
+    title: String?,
     modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
 ) {
+    val context = LocalContext.current
+
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
+            val confirmButtonLabel = state.confirmLabel(context)
             if (confirmButtonLabel != null) {
                 TextButton(onClick = onDismissRequest) {
                     Text(text = confirmButtonLabel)
@@ -115,7 +116,7 @@ internal fun ChooserDialog(
         modifier = modifier,
         title = {
             Text(
-                text = title,
+                text = title ?: state.title(context),
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
             )
@@ -127,10 +128,7 @@ internal fun ChooserDialog(
                 ChooserState.NoRoutes -> NoRoutes()
                 ChooserState.ShowingRoutes -> ShowingRoutes(
                     routes = routes,
-                    onRouteClick = { route ->
-                        route.select()
-                        onDismissRequest()
-                    },
+                    onRouteClick = RouteInfo::select,
                 )
             }
         },
@@ -259,15 +257,17 @@ private fun RouteItem(
         },
         leadingContent = {
             val context = LocalContext.current
-            val drawable = remember(route.iconUri) {
+            val imageBitmap = remember(route.iconUri) {
                 route.iconUri
                     ?.let { context.contentResolver.openInputStream(it) }
                     ?.use { Drawable.createFromStream(it, null) }
+                    ?.toBitmap()
+                    ?.asImageBitmap()
             }
 
-            if (drawable != null) {
+            if (imageBitmap != null) {
                 Icon(
-                    bitmap = drawable.toBitmap().asImageBitmap(),
+                    bitmap = imageBitmap,
                     contentDescription = null,
                 )
             } else {
@@ -297,8 +297,7 @@ private fun ChooserDialogFindingDevicesPreview() {
         ChooserDialog(
             routes = emptyList(),
             state = ChooserState.FindingDevices,
-            title = stringResource(R.string.mr_chooser_title),
-            confirmButtonLabel = null,
+            title = null,
             onDismissRequest = {},
         )
     }
@@ -311,8 +310,7 @@ private fun ChooserDialogNoDevicesNoWifiHintPreview() {
         ChooserDialog(
             routes = emptyList(),
             state = ChooserState.NoDevicesNoWifiHint,
-            title = stringResource(R.string.mr_chooser_title),
-            confirmButtonLabel = null,
+            title = null,
             onDismissRequest = {},
         )
     }
@@ -325,8 +323,7 @@ private fun ChooserDialogNoRoutesPreview() {
         ChooserDialog(
             routes = emptyList(),
             state = ChooserState.NoRoutes,
-            title = stringResource(R.string.mr_chooser_zero_routes_found_title),
-            confirmButtonLabel = stringResource(android.R.string.ok),
+            title = null,
             onDismissRequest = {},
         )
     }
@@ -339,8 +336,7 @@ private fun ChooserDialogShowingRoutesPreview() {
         ChooserDialog(
             routes = emptyList(),
             state = ChooserState.ShowingRoutes,
-            title = stringResource(R.string.mr_chooser_title),
-            confirmButtonLabel = null,
+            title = null,
             onDismissRequest = {},
         )
     }

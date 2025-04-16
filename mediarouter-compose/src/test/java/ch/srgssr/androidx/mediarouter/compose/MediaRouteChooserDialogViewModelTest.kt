@@ -6,6 +6,7 @@
 package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
+import android.content.Intent
 import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
@@ -101,14 +102,6 @@ class MediaRouteChooserDialogViewModelTest {
         viewModel.chooserState.test {
             assertEquals(ChooserState.FindingDevices, awaitItem())
         }
-
-        viewModel.title.test {
-            assertEquals(context.getString(R.string.mr_chooser_title), awaitItem())
-        }
-
-        viewModel.confirmButtonLabel.test {
-            assertNull(awaitItem())
-        }
     }
 
     @Test
@@ -197,6 +190,38 @@ class MediaRouteChooserDialogViewModelTest {
         assertNull(ChooserState.ShowingRoutes.confirmLabel(context))
     }
 
+    @Test
+    fun `check that selecting a route hides the dialog`() {
+        router.addProvider(provider)
+
+        runTest {
+            viewModel.showDialog.test {
+                assertTrue(awaitItem())
+
+                router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+
+                shadowOf(Looper.getMainLooper()).idle()
+
+                assertFalse(awaitItem())
+            }
+        }
+    }
+
+    @Test
+    fun `check that turning the screen off hides the dialog`() {
+        runTest {
+            viewModel.showDialog.test {
+                assertTrue(awaitItem())
+
+                context.sendBroadcast(Intent(Intent.ACTION_SCREEN_OFF))
+
+                shadowOf(Looper.getMainLooper()).idle()
+
+                assertFalse(awaitItem())
+            }
+        }
+    }
+
     @Test(expected = IllegalStateException::class)
     fun `ViewModel factory fails to create a ViewModel without a Context`() {
         MediaRouteChooserDialogViewModel.Factory(MediaRouteSelector.EMPTY)
@@ -214,5 +239,12 @@ class MediaRouteChooserDialogViewModelTest {
 
                 assertIs<MediaRouteChooserDialogViewModel>(viewModel)
             }
+    }
+
+    private fun MediaRouter.selectRouteById(id: String) {
+        val providerFQCN = TestMediaRouteProvider::class.qualifiedName
+        val fullId = "${context.packageName}/$providerFQCN:$id"
+
+        routes.single { it.id == fullId }.select()
     }
 }
