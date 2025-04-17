@@ -10,7 +10,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -51,7 +50,7 @@ internal class MediaRouteChooserDialogViewModel(
     /**
      * The state of the [MediaRouteChooserDialog].
      */
-    enum class ChooserState {
+    internal enum class ChooserState {
         /**
          * The dialog is actively searching for devices.
          */
@@ -72,7 +71,6 @@ internal class MediaRouteChooserDialogViewModel(
          */
         ShowingRoutes;
 
-        @VisibleForTesting
         internal fun title(context: Context): String {
             val titleRes = when (this) {
                 FindingDevices,
@@ -85,7 +83,6 @@ internal class MediaRouteChooserDialogViewModel(
             return context.getString(titleRes)
         }
 
-        @VisibleForTesting
         internal fun confirmLabel(context: Context): String? {
             return when (this) {
                 FindingDevices,
@@ -118,25 +115,6 @@ internal class MediaRouteChooserDialogViewModel(
             .sortedBy(RouteInfo::getName)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val _chooserState = _routes.transformLatest { routes ->
-        if (routes.isEmpty()) {
-            emit(ChooserState.FindingDevices)
-
-            delay(5.seconds)
-
-            emit(ChooserState.NoDevicesNoWifiHint)
-
-            delay(15.seconds)
-
-            emit(ChooserState.NoRoutes)
-
-            router.removeCallback(mediaRouterCallback)
-        } else {
-            emit(ChooserState.ShowingRoutes)
-        }
-    }
-
     /**
      * Indicate if the dialog should be displayed or not.
      */
@@ -152,20 +130,24 @@ internal class MediaRouteChooserDialogViewModel(
     /**
      * The state of the [MediaRouteChooserDialog].
      */
-    val chooserState = _chooserState
-        .stateIn(viewModelScope, WhileSubscribed(), ChooserState.FindingDevices)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val chooserState = _routes.transformLatest { routes ->
+        if (routes.isEmpty()) {
+            emit(ChooserState.FindingDevices)
 
-    /**
-     * The title to display on the dialog.
-     */
-    val title = _chooserState.map { it.title(application) }
-        .stateIn(viewModelScope, WhileSubscribed(), "")
+            delay(5.seconds)
 
-    /**
-     * The label of the confirm button.
-     */
-    val confirmButtonLabel = _chooserState.map { it.confirmLabel(application) }
-        .stateIn(viewModelScope, WhileSubscribed(), null)
+            emit(ChooserState.NoDevicesNoWifiHint)
+
+            delay(15.seconds)
+
+            emit(ChooserState.NoRoutes)
+
+            router.removeCallback(mediaRouterCallback)
+        } else {
+            emit(ChooserState.ShowingRoutes)
+        }
+    }.stateIn(viewModelScope, WhileSubscribed(), ChooserState.FindingDevices)
 
     init {
         router.addCallback(
@@ -232,7 +214,7 @@ internal class MediaRouteChooserDialogViewModel(
             reason: Int,
             requestedRoute: RouteInfo,
         ) {
-            routerUpdates.update { it + 1 }
+            hideDialog()
         }
     }
 }
