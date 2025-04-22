@@ -13,7 +13,7 @@ import androidx.mediarouter.media.MediaRouteProvider
 import androidx.mediarouter.media.MediaRouteProviderDescriptor
 import androidx.mediarouter.media.MediaRouter.RouteInfo
 
-class TestMediaRouteProvider(context: Context) : MediaRouteProvider(context) {
+internal class TestMediaRouteProvider(context: Context) : MediaRouteProvider(context) {
     init {
         val intentFilterAudio = IntentFilter()
         intentFilterAudio.addCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO)
@@ -70,6 +70,7 @@ class TestMediaRouteProvider(context: Context) : MediaRouteProvider(context) {
         const val ROUTE_ID_PRESENTATION = "presentation_display_route"
 
         // Route names
+        const val DEFAULT_ROUTE_NAME = "Phone"
         const val ROUTE_NAME_CONNECTED = "Connected route"
         const val ROUTE_NAME_CONNECTING = "Connecting route"
         const val ROUTE_NAME_DISABLED = "Disabled route"

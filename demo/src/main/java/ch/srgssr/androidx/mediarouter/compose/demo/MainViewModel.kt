@@ -64,7 +64,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         MediaRouter.getInstance(application).setMediaSession(mediaSession)
 
-        localPlayer.setMediaItem(mediaItem)
+        localPlayer.setMediaItems(listOf(mediaItemAudio, mediaItemVideo))
         localPlayer.volume = 0f
         localPlayer.prepare()
         localPlayer.play()
@@ -91,8 +91,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             mediaSession.setMetadata(
                 PlatformMediaMetadata.Builder()
-                    .putText(METADATA_KEY_TITLE, mediaItem.mediaMetadata.title)
-                    .putText(METADATA_KEY_ART_URI, mediaItem.mediaMetadata.artworkUri.toString())
+                    .putText(METADATA_KEY_TITLE, mediaMetadata.title)
+                    .putText(METADATA_KEY_ART_URI, mediaMetadata.artworkUri.toString())
                     .build()
             )
         }
@@ -128,7 +128,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private companion object {
         @Suppress("MaxLineLength")
-        private val mediaItem = MediaItem.Builder()
+        private val mediaItemAudio = MediaItem.Builder()
+            .setUri("https://rts-aod-dd.akamaized.net/ww/13306839/63cc2653-8305-3894-a448-108810b553ef.mp3")
+            .setMimeType(MimeTypes.AUDIO_MP4)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle("On en parle")
+                    .setArtworkUri("https://www.rts.ch/2023/09/28/17/49/11872957.image?w=624&h=351".toUri())
+                    .build()
+            )
+            .build()
+
+        @Suppress("MaxLineLength")
+        private val mediaItemVideo = MediaItem.Builder()
             .setUri("https://storage.googleapis.com/wvmedia/clear/h264/tears/tears.mpd")
             .setMimeType(MimeTypes.APPLICATION_MPD)
             .setMediaMetadata(

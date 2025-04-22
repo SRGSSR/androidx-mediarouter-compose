@@ -7,18 +7,17 @@ package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
 import android.app.PendingIntent
-import android.media.MediaDescription
-import android.media.MediaMetadata
-import android.media.session.MediaController
-import android.media.session.MediaSession
-import android.media.session.PlaybackState
-import android.media.session.PlaybackState.ACTION_PAUSE
-import android.media.session.PlaybackState.ACTION_PLAY
-import android.media.session.PlaybackState.ACTION_PLAY_PAUSE
-import android.media.session.PlaybackState.ACTION_STOP
-import android.media.session.PlaybackState.STATE_BUFFERING
-import android.media.session.PlaybackState.STATE_NONE
-import android.media.session.PlaybackState.STATE_PLAYING
+import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY_PAUSE
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_STOP
+import android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERING
+import android.support.v4.media.session.PlaybackStateCompat.STATE_NONE
+import android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -47,13 +46,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 internal class MediaRouteControllerDialogViewModel(
     private val application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val volumeControlEnabled: Boolean,
 ) : AndroidViewModel(application) {
-    private var mediaController: MediaController? = null
+    private var mediaController: MediaControllerCompat? = null
 
     private val mediaControllerCallback = MediaControllerCallback()
     private val mediaRouterCallback = MediaRouterCallback()
@@ -63,10 +63,10 @@ internal class MediaRouteControllerDialogViewModel(
     private val routerUpdates = MutableStateFlow(0)
 
     @VisibleForTesting
-    internal val mediaDescription = MutableStateFlow<MediaDescription?>(null)
+    internal val mediaDescription = MutableStateFlow<MediaDescriptionCompat?>(null)
 
     @VisibleForTesting
-    internal val playbackState = MutableStateFlow<PlaybackState?>(null)
+    internal val playbackState = MutableStateFlow<PlaybackStateCompat?>(null)
     private val _isDeviceGroupExpanded = MutableStateFlow(false)
     private val _selectedRoute = routerUpdates.map { router.selectedRoute }
 
@@ -80,9 +80,14 @@ internal class MediaRouteControllerDialogViewModel(
             mediaDescription != null || playbackState != null
         }.stateIn(viewModelScope, WhileSubscribed(), false)
     val showVolumeControl = _selectedRoute.map { selectedRoute ->
-        selectedRoute.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
-                && (isGroupVolumeUxEnabled || !(selectedRoute.isGroup && selectedRoute.memberRoutes.size > 1))
-                && volumeControlEnabled
+        if (!isGroupVolumeUxEnabled && selectedRoute.isGroup && selectedRoute.memberRoutes.size > 1) {
+            _isDeviceGroupExpanded.update { true }
+            false
+        } else {
+            selectedRoute.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+                    && (!_isDeviceGroupExpanded.value || isGroupVolumeUxEnabled)
+                    && volumeControlEnabled
+        }
     }.stateIn(viewModelScope, WhileSubscribed(), false)
     val imageModel = mediaDescription.map { mediaDescription ->
         mediaDescription?.iconBitmap?.takeIf { !it.isRecycled } ?: mediaDescription?.iconUri
@@ -139,13 +144,20 @@ internal class MediaRouteControllerDialogViewModel(
         )
 
         router.mediaSessionToken?.let { mediaSessionToken ->
-            val platformToken = mediaSessionToken.token as MediaSession.Token
-            val mediaController = MediaController(application, platformToken)
+            val mediaController = MediaControllerCompat(application, mediaSessionToken)
             mediaController.registerCallback(mediaControllerCallback)
 
             this.mediaController = mediaController
             mediaDescription.update { mediaController.metadata?.description }
             playbackState.update { mediaController.playbackState }
+        }
+
+        viewModelScope.launch {
+            _selectedRoute.collect {
+                if (!it.isSelected || it.isDefaultOrBluetooth) {
+                    hideDialog()
+                }
+            }
         }
     }
 
@@ -222,13 +234,13 @@ internal class MediaRouteControllerDialogViewModel(
         mediaControllerCallback.onSessionDestroyed()
     }
 
-    private val PlaybackState.isPlayActionSupported: Boolean
+    private val PlaybackStateCompat.isPlayActionSupported: Boolean
         get() = actions and (ACTION_PLAY or ACTION_PLAY_PAUSE) != 0L
 
-    private val PlaybackState.isPauseActionSupported: Boolean
+    private val PlaybackStateCompat.isPauseActionSupported: Boolean
         get() = actions and (ACTION_PAUSE or ACTION_PLAY_PAUSE) != 0L
 
-    private val PlaybackState.isStopActionSupported: Boolean
+    private val PlaybackStateCompat.isStopActionSupported: Boolean
         get() = actions and ACTION_STOP != 0L
 
     private companion object {
@@ -249,18 +261,18 @@ internal class MediaRouteControllerDialogViewModel(
         }
     }
 
-    private inner class MediaControllerCallback : MediaController.Callback() {
+    private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
         override fun onSessionDestroyed() {
             mediaController?.unregisterCallback(this)
             mediaController = null
         }
 
-        override fun onPlaybackStateChanged(state: PlaybackState?) {
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             playbackState.update { state }
             routerUpdates.update { it + 1 }
         }
 
-        override fun onMetadataChanged(metadata: MediaMetadata?) {
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             mediaDescription.update { metadata?.description }
             routerUpdates.update { it + 1 }
         }
