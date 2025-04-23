@@ -55,7 +55,7 @@ androidx-fragment = { group = "androidx.fragment", name = "fragment", version.re
 androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "androidx-lifecycle" }
-androidx-lifecycle-viewmodel-testing = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-testing", version = "2.9.0-beta01" }
+androidx-lifecycle-viewmodel-testing = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-testing", version = "2.9.0-rc01" }
 androidx-media = { group = "androidx.media", name = "media", version.ref = "androidx-media" }
 androidx-media3-cast = { group = "androidx.media3", name = "media3-cast", version.ref = "androidx-media3" }
 androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "androidx-media3" }
