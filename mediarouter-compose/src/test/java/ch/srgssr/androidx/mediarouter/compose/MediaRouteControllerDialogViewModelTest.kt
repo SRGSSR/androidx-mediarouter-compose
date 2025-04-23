@@ -7,8 +7,17 @@ package ch.srgssr.androidx.mediarouter.compose
 
 import android.app.Application
 import android.graphics.BitmapFactory
-import android.media.MediaDescription
-import android.media.session.PlaybackState
+import android.os.Looper
+import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY_PAUSE
+import android.support.v4.media.session.PlaybackStateCompat.ACTION_STOP
+import android.support.v4.media.session.PlaybackStateCompat.STATE_BUFFERING
+import android.support.v4.media.session.PlaybackStateCompat.STATE_NONE
+import android.support.v4.media.session.PlaybackStateCompat.STATE_PAUSED
+import android.support.v4.media.session.PlaybackStateCompat.STATE_PLAYING
 import android.view.KeyEvent.ACTION_DOWN
 import android.view.KeyEvent.KEYCODE_A
 import android.view.KeyEvent.KEYCODE_VOLUME_DOWN
@@ -31,10 +40,15 @@ import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.DEFAULT_ROUTE_NAME
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_CONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_PRESENTATION
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_NAME_CONNECTED
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
+import org.robolectric.Shadows.shadowOf
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -62,7 +76,7 @@ class MediaRouteControllerDialogViewModelTest {
 
         router = MediaRouter.getInstance(context)
         router.addProvider(TestMediaRouteProvider(context))
-        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+        router.selectRouteById(ROUTE_ID_CONNECTED)
 
         viewModelScenario = viewModelScenario {
             MediaRouteControllerDialogViewModel(context, SavedStateHandle(), true)
@@ -83,7 +97,7 @@ class MediaRouteControllerDialogViewModelTest {
         }
 
         viewModel.selectedRoute.test {
-            assertEquals(TestMediaRouteProvider.ROUTE_NAME_CONNECTED, awaitItem().name)
+            assertEquals(ROUTE_NAME_CONNECTED, awaitItem().name)
         }
 
         viewModel.isDeviceGroupExpanded.test {
@@ -117,7 +131,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check show playback control with media description`() = runTest {
-        viewModel.mediaDescription.update { MediaDescription.Builder().build() }
+        viewModel.mediaDescription.update { MediaDescriptionCompat.Builder().build() }
 
         viewModel.showPlaybackControl.test {
             assertTrue(awaitItem())
@@ -126,7 +140,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check show playback control with playback state`() = runTest {
-        viewModel.playbackState.update { PlaybackState.Builder().build() }
+        viewModel.playbackState.update { PlaybackStateCompat.Builder().build() }
 
         viewModel.showPlaybackControl.test {
             assertTrue(awaitItem())
@@ -136,7 +150,7 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check image model with null icon bitmap`() = runTest {
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setIconBitmap(null)
                 .build()
         }
@@ -152,7 +166,7 @@ class MediaRouteControllerDialogViewModelTest {
         bitmap.recycle()
 
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setIconBitmap(bitmap)
                 .build()
         }
@@ -167,7 +181,7 @@ class MediaRouteControllerDialogViewModelTest {
         val bitmap = BitmapFactory.decodeByteArray(byteArrayOf(), 0, 0)
 
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setIconBitmap(bitmap)
                 .build()
         }
@@ -182,7 +196,7 @@ class MediaRouteControllerDialogViewModelTest {
         val iconUri = "https://example.com/icon.png".toUri()
 
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setIconUri(iconUri)
                 .build()
         }
@@ -198,7 +212,7 @@ class MediaRouteControllerDialogViewModelTest {
         val iconUri = "https://example.com/icon.png".toUri()
 
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setIconBitmap(bitmap)
                 .setIconUri(iconUri)
                 .build()
@@ -211,7 +225,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check title with selected route has a presentation display id`() = runTest {
-        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_PRESENTATION)
+        router.selectRouteById(ROUTE_ID_PRESENTATION)
 
         viewModel.title.test {
             assertEquals(context.getString(R.string.mr_controller_casting_screen), awaitItem())
@@ -221,8 +235,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with playback state being none`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_NONE, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_NONE, 0L, 0f)
                 .build()
         }
 
@@ -234,8 +248,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with playback state different than none`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
@@ -247,12 +261,12 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with empty media description`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
-        viewModel.mediaDescription.update { MediaDescription.Builder().build() }
+        viewModel.mediaDescription.update { MediaDescriptionCompat.Builder().build() }
 
         viewModel.title.test {
             assertEquals(context.getString(R.string.mr_controller_no_info_available), awaitItem())
@@ -262,15 +276,15 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with media description containing title only`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
         val title = "Title"
 
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setTitle(title)
                 .build()
         }
@@ -283,15 +297,15 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check title with media description containing subtitle only`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
         val subtitle = "Subtitle"
 
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setSubtitle(subtitle)
                 .build()
         }
@@ -303,7 +317,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check subtitle with empty media description`() = runTest {
-        viewModel.mediaDescription.update { MediaDescription.Builder().build() }
+        viewModel.mediaDescription.update { MediaDescriptionCompat.Builder().build() }
 
         viewModel.subtitle.test {
             assertNull(awaitItem())
@@ -313,7 +327,7 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check subtitle with null subtitle`() = runTest {
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setSubtitle(null)
                 .build()
         }
@@ -326,7 +340,7 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check subtitle with empty subtitle`() = runTest {
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setSubtitle("")
                 .build()
         }
@@ -341,7 +355,7 @@ class MediaRouteControllerDialogViewModelTest {
         val subtitle = "Subtitle"
 
         viewModel.mediaDescription.update {
-            MediaDescription.Builder()
+            MediaDescriptionCompat.Builder()
                 .setSubtitle(subtitle)
                 .build()
         }
@@ -354,8 +368,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and no capabilities`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_BUFFERING, 0L, 0f)
                 .build()
         }
 
@@ -367,9 +381,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
-                .setActions(PlaybackState.ACTION_PAUSE)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_BUFFERING, 0L, 0f)
+                .setActions(ACTION_PAUSE)
                 .build()
         }
 
@@ -384,9 +398,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and play pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
-                .setActions(PlaybackState.ACTION_PLAY_PAUSE)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_BUFFERING, 0L, 0f)
+                .setActions(ACTION_PLAY_PAUSE)
                 .build()
         }
 
@@ -401,9 +415,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while buffering and stop supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_BUFFERING, 0L, 0f)
-                .setActions(PlaybackState.ACTION_STOP)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_BUFFERING, 0L, 0f)
+                .setActions(ACTION_STOP)
                 .build()
         }
 
@@ -418,8 +432,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and no capabilities`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
                 .build()
         }
 
@@ -431,9 +445,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
-                .setActions(PlaybackState.ACTION_PAUSE)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
+                .setActions(ACTION_PAUSE)
                 .build()
         }
 
@@ -448,9 +462,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and play pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
-                .setActions(PlaybackState.ACTION_PLAY_PAUSE)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
+                .setActions(ACTION_PLAY_PAUSE)
                 .build()
         }
 
@@ -465,9 +479,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while playing and stop supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PLAYING, 0L, 0f)
-                .setActions(PlaybackState.ACTION_STOP)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PLAYING, 0L, 0f)
+                .setActions(ACTION_STOP)
                 .build()
         }
 
@@ -482,8 +496,8 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while paused and no capabilities`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PAUSED, 0L, 0f)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PAUSED, 0L, 0f)
                 .build()
         }
 
@@ -495,9 +509,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while paused and play supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PAUSED, 0L, 0f)
-                .setActions(PlaybackState.ACTION_PLAY)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PAUSED, 0L, 0f)
+                .setActions(ACTION_PLAY)
                 .build()
         }
 
@@ -512,9 +526,9 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `check icon info while paused and play pause supported`() = runTest {
         viewModel.playbackState.update {
-            PlaybackState.Builder()
-                .setState(PlaybackState.STATE_PAUSED, 0L, 0f)
-                .setActions(PlaybackState.ACTION_PLAY_PAUSE)
+            PlaybackStateCompat.Builder()
+                .setState(STATE_PAUSED, 0L, 0f)
+                .setActions(ACTION_PLAY_PAUSE)
                 .build()
         }
 
@@ -555,12 +569,12 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun `stop casting`() = runTest {
         viewModel.showDialog.test {
-            assertEquals(TestMediaRouteProvider.ROUTE_NAME_CONNECTED, router.selectedRoute.name)
+            assertEquals(ROUTE_NAME_CONNECTED, router.selectedRoute.name)
             assertTrue(awaitItem())
 
             viewModel.stopCasting()
 
-            assertEquals("Phone", router.selectedRoute.name)
+            assertEquals(DEFAULT_ROUTE_NAME, router.selectedRoute.name)
             assertFalse(awaitItem())
         }
     }
@@ -568,12 +582,42 @@ class MediaRouteControllerDialogViewModelTest {
     @Test
     fun disconnect() = runTest {
         viewModel.showDialog.test {
-            assertEquals(TestMediaRouteProvider.ROUTE_NAME_CONNECTED, router.selectedRoute.name)
+            assertEquals(ROUTE_NAME_CONNECTED, router.selectedRoute.name)
             assertTrue(awaitItem())
 
             viewModel.disconnect()
 
-            assertEquals("Phone", router.selectedRoute.name)
+            assertEquals(DEFAULT_ROUTE_NAME, router.selectedRoute.name)
+            assertFalse(awaitItem())
+        }
+    }
+
+    @Test
+    fun `check that selecting the default route hides the dialog`() = runTest {
+        viewModel.showDialog.test {
+            assertEquals(ROUTE_NAME_CONNECTED, router.selectedRoute.name)
+            assertTrue(awaitItem())
+
+            router.routes[0].select()
+
+            shadowOf(Looper.getMainLooper()).idle()
+
+            assertEquals(DEFAULT_ROUTE_NAME, router.selectedRoute.name)
+            assertFalse(awaitItem())
+        }
+    }
+
+    @Test
+    fun `check that unselecting the a route hides the dialog`() = runTest {
+        viewModel.showDialog.test {
+            assertEquals(ROUTE_NAME_CONNECTED, router.selectedRoute.name)
+            assertTrue(awaitItem())
+
+            router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
+
+            shadowOf(Looper.getMainLooper()).idle()
+
+            assertEquals(DEFAULT_ROUTE_NAME, router.selectedRoute.name)
             assertFalse(awaitItem())
         }
     }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -241,10 +240,6 @@ private fun ControllerDialogContent(
                 )
             }
 
-            if (showPlaybackControl && showVolumeControl) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            }
-
             if (showVolumeControl) {
                 VolumeControl(
                     route = route,
@@ -313,6 +308,7 @@ private fun PlaybackControlRow(
         Column(
             modifier = Modifier
                 .weight(1f)
+                .padding(vertical = 8.dp)
                 .clickable(onClick = onTitleClick),
         ) {
             if (title != null) {
@@ -355,7 +351,7 @@ private fun VolumeControl(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        var volume by remember { mutableFloatStateOf(route.volume.toFloat()) }
+        val (volume, setVolume) = remember { mutableFloatStateOf(route.volume.toFloat()) }
 
         Icon(
             imageVector = Icons.Audiotrack,
@@ -364,13 +360,10 @@ private fun VolumeControl(
 
         Slider(
             value = volume,
-            onValueChange = {
-                volume = it
-
-                route.requestSetVolume(it.toInt())
-            },
+            onValueChange = setVolume,
             modifier = Modifier.weight(1f),
             valueRange = 0f..route.volumeMax.toFloat(),
+            onValueChangeFinished = { route.requestSetVolume(volume.toInt()) },
         )
 
         if (route.isGroup && route.memberRoutes.size > 1) {
@@ -405,8 +398,8 @@ private fun DeviceGroup(
         items(routes) { route ->
             val isVolumeControlEnabled = volumeControlEnabled
                     && route.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
-            val volumeRange = 0f..route.volumeMax.toFloat()
-            val enabled = route.isEnabled
+            val volumeMax = if (isVolumeControlEnabled) route.volumeMax else 100
+            val volumeRange = 0f..volumeMax.toFloat()
 
             var volume by remember {
                 mutableFloatStateOf(if (isVolumeControlEnabled) route.volume.toFloat() else 100f)
@@ -436,13 +429,16 @@ private fun DeviceGroup(
                         onValueChange = {
                             if (isVolumeControlEnabled) {
                                 volume = it
-
-                                route.requestSetVolume(it.toInt())
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        enabled = enabled,
+                        enabled = route.isEnabled,
                         valueRange = volumeRange,
+                        onValueChangeFinished = {
+                            if (isVolumeControlEnabled) {
+                                route.requestSetVolume(volume.toInt())
+                            }
+                        },
                     )
                 }
             }
