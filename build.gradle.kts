@@ -74,6 +74,10 @@ dependencyAnalysis {
             onAny {
                 severity("fail")
             }
+
+            onUnusedDependencies {
+                exclude(libs.androidx.compose.ui.tooling.asProvider())
+            }
         }
 
         project(":demo") {
