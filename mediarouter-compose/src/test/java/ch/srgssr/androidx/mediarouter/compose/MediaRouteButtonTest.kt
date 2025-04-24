@@ -8,30 +8,28 @@ package ch.srgssr.androidx.mediarouter.compose
 import android.content.Context
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.ComposeUiTest
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import androidx.core.content.getSystemService
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Rule
 import org.junit.runner.RunWith
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
 class MediaRouteButtonTest {
     private lateinit var context: Context
     private lateinit var dialogTypes: MutableList<DialogType>
     private lateinit var router: MediaRouter
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
 
     @BeforeTest
     fun before() {
@@ -81,9 +79,9 @@ class MediaRouteButtonTest {
 
     private fun assertMediaRouteButtonState(
         expectedDialogTypes: List<DialogType>,
-        action: (ComposeTestRule.() -> Unit)? = null,
-    ) {
-        composeTestRule.setContent {
+        action: (ComposeUiTest.() -> Unit)? = null,
+    ) = runComposeUiTest {
+        setContent {
             MediaRouteButton(
                 modifier = Modifier.testTag(TEST_TAG),
                 mediaRouteChooserDialog = {},
@@ -95,8 +93,8 @@ class MediaRouteButtonTest {
         }
 
         action?.let {
-            composeTestRule.it()
-            composeTestRule.waitForIdle()
+            it()
+            waitForIdle()
         }
 
         assertEquals(expectedDialogTypes, dialogTypes)

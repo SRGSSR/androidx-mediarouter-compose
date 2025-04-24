@@ -125,7 +125,6 @@ dependencies {
 
     testImplementation(libs.androidx.activity)
     testImplementation(libs.androidx.compose.ui.test)
-    testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.androidx.lifecycle.viewmodel.testing)
     testImplementation(libs.androidx.mediarouter.testing)
     testImplementation(libs.androidx.test.core)
