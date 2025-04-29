@@ -38,15 +38,19 @@ import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
+import ch.srgssr.androidx.mediarouter.compose.MediaRouteControllerDialogViewModel.RouteDetail
 import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.DEFAULT_ROUTE_NAME
 import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_CONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_GROUP
 import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_PRESENTATION
 import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_NAME_CONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.findRouteById
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
+import org.robolectric.ParameterizedRobolectricTestRunner
+import org.robolectric.ParameterizedRobolectricTestRunner.Parameters
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import kotlin.test.AfterTest
@@ -58,8 +62,10 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@RunWith(AndroidJUnit4::class)
-class MediaRouteControllerDialogViewModelTest {
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class MediaRouteControllerDialogViewModelTest(
+    private val volumeControlEnabled: Boolean,
+) {
     private lateinit var context: Application
     private lateinit var router: MediaRouter
     private lateinit var viewModelScenario: ViewModelScenario<MediaRouteControllerDialogViewModel>
@@ -76,10 +82,10 @@ class MediaRouteControllerDialogViewModelTest {
 
         router = MediaRouter.getInstance(context)
         router.addProvider(TestMediaRouteProvider(context))
-        router.selectRouteById(ROUTE_ID_CONNECTED)
+        router.findRouteById(ROUTE_ID_CONNECTED).select()
 
         viewModelScenario = viewModelScenario {
-            MediaRouteControllerDialogViewModel(context, SavedStateHandle(), true)
+            MediaRouteControllerDialogViewModel(context, SavedStateHandle(), volumeControlEnabled)
         }
     }
 
@@ -96,10 +102,6 @@ class MediaRouteControllerDialogViewModelTest {
             assertTrue(awaitItem())
         }
 
-        viewModel.selectedRoute.test {
-            assertEquals(ROUTE_NAME_CONNECTED, awaitItem().name)
-        }
-
         viewModel.isDeviceGroupExpanded.test {
             assertFalse(awaitItem())
         }
@@ -109,7 +111,7 @@ class MediaRouteControllerDialogViewModelTest {
         }
 
         viewModel.showVolumeControl.test {
-            assertFalse(awaitItem())
+            assertEquals(volumeControlEnabled, awaitItem())
         }
 
         viewModel.imageModel.test {
@@ -126,6 +128,17 @@ class MediaRouteControllerDialogViewModelTest {
 
         viewModel.iconInfo.test {
             assertNull(awaitItem())
+        }
+
+        viewModel.routes.test {
+            val route = router.selectedRoute
+            val selectedRouteDetail = RouteDetail(
+                route = route,
+                volume = getVolume(route),
+                volumeRange = getVolumeRange(route),
+            )
+
+            assertEquals(listOf(selectedRouteDetail), awaitItem())
         }
     }
 
@@ -225,7 +238,7 @@ class MediaRouteControllerDialogViewModelTest {
 
     @Test
     fun `check title with selected route has a presentation display id`() = runTest {
-        router.selectRouteById(ROUTE_ID_PRESENTATION)
+        router.findRouteById(ROUTE_ID_PRESENTATION).select()
 
         viewModel.title.test {
             assertEquals(context.getString(R.string.mr_controller_casting_screen), awaitItem())
@@ -643,6 +656,126 @@ class MediaRouteControllerDialogViewModelTest {
         assertFalse(viewModel.onKeyEvent(keyEvent))
     }
 
+    @Test
+    fun `selecting a group of devices provides the corresponding volumes`() = runTest {
+        router.findRouteById(ROUTE_ID_GROUP).select()
+
+        viewModel.routes.test {
+            val routes = router.selectedRoute.memberRoutes
+            val expected = listOf(getGroupRouteDetail()) + routes.map { route ->
+                RouteDetail(
+                    route = route,
+                    volume = getVolume(route),
+                    volumeRange = getVolumeRange(route),
+                )
+            }
+
+            assertEquals(expected, awaitItem())
+        }
+    }
+
+    @Test
+    fun `set route volume on a new route of a group`() = runTest {
+        router.findRouteById(ROUTE_ID_GROUP).select()
+
+        val routes = router.selectedRoute.memberRoutes
+        val targetVolume = 10f
+        val routeToUpdate = routes[0]
+        val expected = listOf(getGroupRouteDetail()) + routes.map { route ->
+            RouteDetail(
+                route = route,
+                volume = if (volumeControlEnabled && route.id == routeToUpdate.id) {
+                    targetVolume
+                } else {
+                    getVolume(route)
+                },
+                volumeRange = getVolumeRange(route),
+            )
+        }
+
+        viewModel.setRouteVolume(routeToUpdate, targetVolume)
+
+        viewModel.routes.test {
+            assertEquals(expected, awaitItem())
+        }
+    }
+
+    @Test
+    fun `set route volume on an updated route of a group`() = runTest {
+        router.findRouteById(ROUTE_ID_GROUP).select()
+
+        val routes = router.selectedRoute.memberRoutes
+        val targetVolume = 10f
+        val routeToUpdate = routes[0]
+        val expected = listOf(getGroupRouteDetail()) + routes.map { route ->
+            RouteDetail(
+                route = route,
+                volume = if (volumeControlEnabled && route.id == routeToUpdate.id) {
+                    targetVolume
+                } else {
+                    getVolume(route)
+                },
+                volumeRange = getVolumeRange(route),
+            )
+        }
+
+        viewModel.setRouteVolume(routeToUpdate, volume = 5f)
+        viewModel.setRouteVolume(routeToUpdate, targetVolume)
+
+        viewModel.routes.test {
+            assertEquals(expected, awaitItem())
+        }
+    }
+
+    @Test
+    fun `set route volume on a route outside of a group`() = runTest {
+        router.findRouteById(ROUTE_ID_GROUP).select()
+
+        val routes = router.selectedRoute.memberRoutes
+        val routeToUpdate = router.findRouteById(ROUTE_ID_PRESENTATION)
+        val expected = listOf(getGroupRouteDetail()) + routes.map { route ->
+            RouteDetail(
+                route = route,
+                volume = getVolume(route),
+                volumeRange = getVolumeRange(route),
+            )
+        }
+
+        viewModel.setRouteVolume(routeToUpdate, volume = 10f)
+
+        viewModel.routes.test {
+            assertEquals(expected, awaitItem())
+        }
+    }
+
+    @Test
+    fun `set route volume on a group`() = runTest {
+        val routeToUpdate = router.findRouteById(ROUTE_ID_GROUP)
+
+        routeToUpdate.select()
+
+        val targetVolume = 10f
+        val routes = router.selectedRoute.memberRoutes
+        val groupRouteDetail = if (volumeControlEnabled) {
+            getGroupRouteDetail().copy(volume = targetVolume)
+        } else {
+            getGroupRouteDetail()
+        }
+        val expected = listOf(groupRouteDetail) + routes.map { route ->
+            RouteDetail(
+                route = route,
+                volume = getVolume(route),
+                volumeRange = getVolumeRange(route),
+            )
+        }
+
+        viewModel.setRouteVolume(routeToUpdate, targetVolume)
+
+        viewModel.routes.test {
+            assertEquals(expected, awaitItem())
+        }
+    }
+
     @Test(expected = IllegalStateException::class)
     fun `ViewModel factory fails to create a ViewModel without a Context`() {
         MediaRouteControllerDialogViewModel.Factory(volumeControlEnabled = true)
@@ -662,10 +795,29 @@ class MediaRouteControllerDialogViewModelTest {
             }
     }
 
-    private fun MediaRouter.selectRouteById(id: String) {
-        val providerFQCN = TestMediaRouteProvider::class.qualifiedName
-        val fullId = "${context.packageName}/$providerFQCN:$id"
+    private fun getGroupRouteDetail(): RouteDetail {
+        val route = router.findRouteById(ROUTE_ID_GROUP)
 
-        routes.single { it.id == fullId }.select()
+        return RouteDetail(
+            route = route,
+            volume = getVolume(route),
+            volumeRange = getVolumeRange(route),
+        )
+    }
+
+    private fun getVolume(route: MediaRouter.RouteInfo): Float {
+        return if (volumeControlEnabled) route.volume.toFloat() else 100f
+    }
+
+    private fun getVolumeRange(route: MediaRouter.RouteInfo): ClosedFloatingPointRange<Float> {
+        return if (volumeControlEnabled) 0f..route.volumeMax.toFloat() else 0f..100f
+    }
+
+    companion object {
+        @JvmStatic
+        @Parameters(name = "volumeControlEnabled = {0}")
+        fun parameters(): List<Boolean> {
+            return listOf(true, false)
+        }
     }
 }

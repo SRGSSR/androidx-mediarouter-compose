@@ -19,7 +19,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.core.graphics.createBitmap
+import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.ScreenshotMediaRouter
+import ch.srgssr.androidx.mediarouter.compose.MediaRouteControllerDialogViewModel.RouteDetail
 import coil3.Image
 import coil3.annotation.ExperimentalCoilApi
 import coil3.asImage
@@ -34,8 +36,7 @@ class MediaRouteControllerDialogScreenshot {
 
         ScreenshotTheme {
             ControllerDialog(
-                route = router.routes[0],
-                volumeControlEnabled = false,
+                routeDetail = routeDetail(router.routes[0]),
                 imageModel = null,
                 title = "Media title",
                 subtitle = "Media subtitle",
@@ -43,6 +44,7 @@ class MediaRouteControllerDialogScreenshot {
                 isDeviceGroupExpanded = false,
                 showPlaybackControl = false,
                 showVolumeControl = false,
+                groupRouteDetails = emptyList(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -51,6 +53,7 @@ class MediaRouteControllerDialogScreenshot {
                 onStopCasting = {},
                 onDisconnect = {},
                 onDismissRequest = {},
+                onVolumeChange = { _, _ -> },
             )
         }
     }
@@ -62,8 +65,7 @@ class MediaRouteControllerDialogScreenshot {
 
         ScreenshotTheme {
             ControllerDialog(
-                route = router.routes[0],
-                volumeControlEnabled = false,
+                routeDetail = routeDetail(router.routes[0]),
                 imageModel = null,
                 title = "Media title",
                 subtitle = "Media subtitle",
@@ -71,6 +73,7 @@ class MediaRouteControllerDialogScreenshot {
                 isDeviceGroupExpanded = false,
                 showPlaybackControl = true,
                 showVolumeControl = false,
+                groupRouteDetails = emptyList(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -79,6 +82,7 @@ class MediaRouteControllerDialogScreenshot {
                 onStopCasting = {},
                 onDisconnect = {},
                 onDismissRequest = {},
+                onVolumeChange = { _, _ -> },
             )
         }
     }
@@ -90,8 +94,7 @@ class MediaRouteControllerDialogScreenshot {
 
         ScreenshotTheme {
             ControllerDialog(
-                route = router.routes[0],
-                volumeControlEnabled = false,
+                routeDetail = routeDetail(router.routes[0]),
                 imageModel = null,
                 title = "Media title",
                 subtitle = "Media subtitle",
@@ -99,6 +102,7 @@ class MediaRouteControllerDialogScreenshot {
                 isDeviceGroupExpanded = false,
                 showPlaybackControl = false,
                 showVolumeControl = true,
+                groupRouteDetails = emptyList(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -107,6 +111,7 @@ class MediaRouteControllerDialogScreenshot {
                 onStopCasting = {},
                 onDisconnect = {},
                 onDismissRequest = {},
+                onVolumeChange = { _, _ -> },
             )
         }
     }
@@ -118,8 +123,7 @@ class MediaRouteControllerDialogScreenshot {
 
         ScreenshotTheme {
             ControllerDialog(
-                route = router.routes[0],
-                volumeControlEnabled = false,
+                routeDetail = routeDetail(router.routes[0]),
                 imageModel = null,
                 title = "Media title",
                 subtitle = "Media subtitle",
@@ -127,6 +131,7 @@ class MediaRouteControllerDialogScreenshot {
                 isDeviceGroupExpanded = false,
                 showPlaybackControl = true,
                 showVolumeControl = false,
+                groupRouteDetails = emptyList(),
                 customControlView = {
                     Text(text = "Custom control view")
                 },
@@ -137,6 +142,7 @@ class MediaRouteControllerDialogScreenshot {
                 onStopCasting = {},
                 onDisconnect = {},
                 onDismissRequest = {},
+                onVolumeChange = { _, _ -> },
             )
         }
     }
@@ -148,8 +154,7 @@ class MediaRouteControllerDialogScreenshot {
 
         ScreenshotTheme {
             ControllerDialog(
-                route = router.routes[0],
-                volumeControlEnabled = false,
+                routeDetail = routeDetail(router.routes[0]),
                 imageModel = null,
                 title = "Media title",
                 subtitle = "Media subtitle",
@@ -157,6 +162,7 @@ class MediaRouteControllerDialogScreenshot {
                 isDeviceGroupExpanded = false,
                 showPlaybackControl = true,
                 showVolumeControl = true,
+                groupRouteDetails = emptyList(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -165,6 +171,7 @@ class MediaRouteControllerDialogScreenshot {
                 onStopCasting = {},
                 onDisconnect = {},
                 onDismissRequest = {},
+                onVolumeChange = { _, _ -> },
             )
         }
     }
@@ -176,8 +183,7 @@ class MediaRouteControllerDialogScreenshot {
 
         ScreenshotTheme {
             ControllerDialog(
-                route = router.routes[0],
-                volumeControlEnabled = false,
+                routeDetail = routeDetail(router.routes[0]),
                 imageModel = null,
                 title = "Media title",
                 subtitle = "Media subtitle",
@@ -185,6 +191,7 @@ class MediaRouteControllerDialogScreenshot {
                 isDeviceGroupExpanded = false,
                 showPlaybackControl = true,
                 showVolumeControl = true,
+                groupRouteDetails = emptyList(),
                 customControlView = {
                     Text(text = "Custom control view")
                 },
@@ -195,6 +202,7 @@ class MediaRouteControllerDialogScreenshot {
                 onStopCasting = {},
                 onDisconnect = {},
                 onDismissRequest = {},
+                onVolumeChange = { _, _ -> },
             )
         }
     }
@@ -213,8 +221,7 @@ class MediaRouteControllerDialogScreenshot {
 
             CompositionLocalProvider(LocalAsyncImagePreviewHandler provides imagePreviewHandler) {
                 ControllerDialog(
-                    route = router.routes[0],
-                    volumeControlEnabled = false,
+                    routeDetail = routeDetail(router.routes[0]),
                     imageModel = "https://image.url/",
                     title = "Media title",
                     subtitle = "Media subtitle",
@@ -222,6 +229,7 @@ class MediaRouteControllerDialogScreenshot {
                     isDeviceGroupExpanded = false,
                     showPlaybackControl = true,
                     showVolumeControl = true,
+                    groupRouteDetails = emptyList(),
                     customControlView = null,
                     toggleDeviceGroup = {},
                     onKeyEvent = { false },
@@ -230,6 +238,7 @@ class MediaRouteControllerDialogScreenshot {
                     onStopCasting = {},
                     onDisconnect = {},
                     onDismissRequest = {},
+                    onVolumeChange = { _, _ -> },
                 )
             }
         }
@@ -249,8 +258,7 @@ class MediaRouteControllerDialogScreenshot {
 
             CompositionLocalProvider(LocalAsyncImagePreviewHandler provides imagePreviewHandler) {
                 ControllerDialog(
-                    route = router.routes[0],
-                    volumeControlEnabled = false,
+                    routeDetail = routeDetail(router.routes[0]),
                     imageModel = "https://image.url/",
                     title = "Media title",
                     subtitle = "Media subtitle",
@@ -258,6 +266,7 @@ class MediaRouteControllerDialogScreenshot {
                     isDeviceGroupExpanded = false,
                     showPlaybackControl = true,
                     showVolumeControl = true,
+                    groupRouteDetails = emptyList(),
                     customControlView = null,
                     toggleDeviceGroup = {},
                     onKeyEvent = { false },
@@ -266,6 +275,7 @@ class MediaRouteControllerDialogScreenshot {
                     onStopCasting = {},
                     onDisconnect = {},
                     onDismissRequest = {},
+                    onVolumeChange = { _, _ -> },
                 )
             }
         }
@@ -280,13 +290,16 @@ class MediaRouteControllerDialogScreenshot {
         ScreenshotTheme {
             val imageColor = MaterialTheme.colorScheme.onSurface
             val imagePreviewHandler = AsyncImagePreviewHandler {
-                createImage(imageColor.toArgb(), width = IMAGE_SIZE, height = IMAGE_SIZE * 4 / 3)
+                createImage(
+                    imageColor.toArgb(),
+                    width = IMAGE_SIZE,
+                    height = IMAGE_SIZE * 4 / 3
+                )
             }
 
             CompositionLocalProvider(LocalAsyncImagePreviewHandler provides imagePreviewHandler) {
                 ControllerDialog(
-                    route = router.routes[0],
-                    volumeControlEnabled = false,
+                    routeDetail = routeDetail(router.routes[0]),
                     imageModel = "https://image.url/",
                     title = "Media title",
                     subtitle = "Media subtitle",
@@ -294,6 +307,7 @@ class MediaRouteControllerDialogScreenshot {
                     isDeviceGroupExpanded = false,
                     showPlaybackControl = true,
                     showVolumeControl = true,
+                    groupRouteDetails = emptyList(),
                     customControlView = null,
                     toggleDeviceGroup = {},
                     onKeyEvent = { false },
@@ -302,6 +316,7 @@ class MediaRouteControllerDialogScreenshot {
                     onStopCasting = {},
                     onDisconnect = {},
                     onDismissRequest = {},
+                    onVolumeChange = { _, _ -> },
                 )
             }
         }
@@ -325,6 +340,14 @@ class MediaRouteControllerDialogScreenshot {
         }
 
         return bitmap.asImage()
+    }
+
+    private fun routeDetail(route: MediaRouter.RouteInfo): RouteDetail {
+        return RouteDetail(
+            route = route,
+            volume = route.volume.toFloat(),
+            volumeRange = 0f..route.volumeMax.toFloat(),
+        )
     }
 
     private companion object {

@@ -18,6 +18,8 @@ import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_CONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.findRouteById
 import org.junit.runner.RunWith
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -70,7 +72,7 @@ class MediaRouteButtonTest {
         assertMediaRouteButtonState(
             expectedDialogTypes = listOf(DialogType.None, DialogType.Controller),
             action = {
-                router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+                router.findRouteById(ROUTE_ID_CONNECTED).select()
 
                 onNodeWithTag(TEST_TAG).performClick()
             },
@@ -98,13 +100,6 @@ class MediaRouteButtonTest {
         }
 
         assertEquals(expectedDialogTypes, dialogTypes)
-    }
-
-    private fun MediaRouter.selectRouteById(id: String) {
-        val providerFQCN = TestMediaRouteProvider::class.qualifiedName
-        val fullId = "${context.packageName}/$providerFQCN:$id"
-
-        routes.single { it.id == fullId }.select()
     }
 
     private companion object {
