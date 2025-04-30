@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,6 +43,7 @@ import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
+import ch.srgssr.androidx.mediarouter.compose.MediaRouteControllerDialogViewModel.RouteDetail
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 
@@ -76,7 +76,6 @@ fun MediaRouteControllerDialog(
         factory = MediaRouteControllerDialogViewModel.Factory(volumeControlEnabled),
     )
     val showDialog by viewModel.showDialog.collectAsState()
-    val selectedRoute by viewModel.selectedRoute.collectAsState()
     val isDeviceGroupExpanded by viewModel.isDeviceGroupExpanded.collectAsState()
     val showPlaybackControl by viewModel.showPlaybackControl.collectAsState()
     val showVolumeControl by viewModel.showVolumeControl.collectAsState()
@@ -84,6 +83,9 @@ fun MediaRouteControllerDialog(
     val title by viewModel.title.collectAsState()
     val subtitle by viewModel.subtitle.collectAsState()
     val iconInfo by viewModel.iconInfo.collectAsState()
+    val routes by viewModel.routes.collectAsState()
+    val selectedRouteDetail = routes[0]
+    val groupRouteDetails = routes.drop(1)
 
     LaunchedEffect(showDialog) {
         if (!showDialog) {
@@ -92,8 +94,7 @@ fun MediaRouteControllerDialog(
     }
 
     ControllerDialog(
-        route = selectedRoute,
-        volumeControlEnabled = volumeControlEnabled,
+        routeDetail = selectedRouteDetail,
         imageModel = imageModel,
         title = title,
         subtitle = subtitle,
@@ -101,6 +102,7 @@ fun MediaRouteControllerDialog(
         isDeviceGroupExpanded = isDeviceGroupExpanded,
         showPlaybackControl = showPlaybackControl,
         showVolumeControl = showVolumeControl,
+        groupRouteDetails = groupRouteDetails,
         modifier = modifier,
         customControlView = customControlView,
         toggleDeviceGroup = viewModel::toggleDeviceGroup,
@@ -110,13 +112,13 @@ fun MediaRouteControllerDialog(
         onStopCasting = viewModel::stopCasting,
         onDisconnect = viewModel::disconnect,
         onDismissRequest = viewModel::hideDialog,
+        onVolumeChange = viewModel::setRouteVolume,
     )
 }
 
 @Composable
 internal fun ControllerDialog(
-    route: RouteInfo,
-    volumeControlEnabled: Boolean,
+    routeDetail: RouteDetail,
     imageModel: Any?,
     title: String?,
     subtitle: String?,
@@ -124,6 +126,7 @@ internal fun ControllerDialog(
     isDeviceGroupExpanded: Boolean,
     showPlaybackControl: Boolean,
     showVolumeControl: Boolean,
+    groupRouteDetails: List<RouteDetail>,
     modifier: Modifier = Modifier,
     customControlView: @Composable (() -> Unit)?,
     toggleDeviceGroup: () -> Unit,
@@ -133,6 +136,7 @@ internal fun ControllerDialog(
     onStopCasting: () -> Unit,
     onDisconnect: () -> Unit,
     onDismissRequest: () -> Unit,
+    onVolumeChange: (route: RouteInfo, volume: Float) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -142,7 +146,7 @@ internal fun ControllerDialog(
             }
         },
         modifier = modifier.onKeyEvent(onKeyEvent),
-        dismissButton = if (route.canDisconnect()) {
+        dismissButton = if (routeDetail.route.canDisconnect()) {
             {
                 TextButton(onClick = onDisconnect) {
                     Text(text = stringResource(R.string.mr_controller_disconnect))
@@ -158,7 +162,7 @@ internal fun ControllerDialog(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = route.name,
+                    text = routeDetail.route.name,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                 )
@@ -173,8 +177,7 @@ internal fun ControllerDialog(
         },
         text = {
             ControllerDialogContent(
-                route = route,
-                volumeControlEnabled = volumeControlEnabled,
+                routeDetail = routeDetail,
                 imageModel = imageModel,
                 title = title,
                 subtitle = subtitle,
@@ -182,11 +185,13 @@ internal fun ControllerDialog(
                 isDeviceGroupExpanded = isDeviceGroupExpanded,
                 showPlaybackControl = showPlaybackControl,
                 showVolumeControl = showVolumeControl,
+                groupRouteDetails = groupRouteDetails,
                 modifier = Modifier.fillMaxWidth(),
                 customControlView = customControlView,
                 onToggleDeviceGroup = toggleDeviceGroup,
                 onPlaybackTitleClick = onPlaybackTitleClick,
                 onPlaybackIconClick = onPlaybackIconClick,
+                onVolumeChange = onVolumeChange,
             )
         },
     )
@@ -194,8 +199,7 @@ internal fun ControllerDialog(
 
 @Composable
 private fun ControllerDialogContent(
-    route: RouteInfo,
-    volumeControlEnabled: Boolean,
+    routeDetail: RouteDetail,
     imageModel: Any?,
     title: String?,
     subtitle: String?,
@@ -203,11 +207,13 @@ private fun ControllerDialogContent(
     isDeviceGroupExpanded: Boolean,
     showPlaybackControl: Boolean,
     showVolumeControl: Boolean,
+    groupRouteDetails: List<RouteDetail>,
     modifier: Modifier = Modifier,
     customControlView: @Composable (() -> Unit)?,
     onToggleDeviceGroup: () -> Unit,
     onPlaybackTitleClick: () -> Unit,
     onPlaybackIconClick: () -> Unit,
+    onVolumeChange: (route: RouteInfo, volume: Float) -> Unit,
 ) {
     @Suppress("NoNameShadowing")
     val showPlaybackControl = showPlaybackControl && customControlView == null
@@ -242,21 +248,22 @@ private fun ControllerDialogContent(
 
             if (showVolumeControl) {
                 VolumeControl(
-                    route = route,
+                    routeDetail = routeDetail,
                     modifier = Modifier.fillMaxWidth(),
                     isExpanded = isDeviceGroupExpanded,
                     onExpandCollapseClick = onToggleDeviceGroup,
+                    onVolumeChange = onVolumeChange,
                 )
             }
         }
 
         if (isDeviceGroupExpanded) {
             DeviceGroup(
-                routes = route.memberRoutes,
-                volumeControlEnabled = volumeControlEnabled,
+                routeDetails = groupRouteDetails,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
+                onVolumeChange = onVolumeChange,
             )
         }
     }
@@ -341,32 +348,30 @@ private fun PlaybackControlRow(
 
 @Composable
 private fun VolumeControl(
-    route: RouteInfo,
+    routeDetail: RouteDetail,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     onExpandCollapseClick: () -> Unit,
+    onVolumeChange: (route: RouteInfo, volume: Float) -> Unit,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val (volume, setVolume) = remember { mutableFloatStateOf(route.volume.toFloat()) }
-
         Icon(
             imageVector = Icons.Audiotrack,
             contentDescription = null,
         )
 
         Slider(
-            value = volume,
-            onValueChange = setVolume,
+            value = routeDetail.volume,
+            onValueChange = { onVolumeChange(routeDetail.route, it) },
             modifier = Modifier.weight(1f),
-            valueRange = 0f..route.volumeMax.toFloat(),
-            onValueChangeFinished = { route.requestSetVolume(volume.toInt()) },
+            valueRange = routeDetail.volumeRange,
         )
 
-        if (route.isGroup && route.memberRoutes.size > 1) {
+        if (routeDetail.route.isGroup && routeDetail.route.memberRoutes.size > 1) {
             IconButton(onClick = onExpandCollapseClick) {
                 val scale by animateFloatAsState(targetValue = if (isExpanded) -1f else 1f)
                 val contentDescriptionRes = if (isExpanded) {
@@ -387,27 +392,16 @@ private fun VolumeControl(
 
 @Composable
 private fun DeviceGroup(
-    routes: List<RouteInfo>,
-    volumeControlEnabled: Boolean,
+    routeDetails: List<RouteDetail>,
     modifier: Modifier = Modifier,
+    onVolumeChange: (route: RouteInfo, volume: Float) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(routes) { route ->
-            val isVolumeControlEnabled = volumeControlEnabled
-                    && route.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
-            val volumeMax = if (isVolumeControlEnabled) route.volumeMax else 100
-            val volumeRange = 0f..volumeMax.toFloat()
-
-            var volume by remember {
-                mutableFloatStateOf(if (isVolumeControlEnabled) route.volume.toFloat() else 100f)
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
+        items(routeDetails) { (route, volume, volumeRange) ->
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = route.name,
                     maxLines = 1,
@@ -426,19 +420,10 @@ private fun DeviceGroup(
 
                     Slider(
                         value = volume,
-                        onValueChange = {
-                            if (isVolumeControlEnabled) {
-                                volume = it
-                            }
-                        },
+                        onValueChange = { onVolumeChange(route, it) },
                         modifier = Modifier.weight(1f),
                         enabled = route.isEnabled,
                         valueRange = volumeRange,
-                        onValueChangeFinished = {
-                            if (isVolumeControlEnabled) {
-                                route.requestSetVolume(volume.toInt())
-                            }
-                        },
                     )
                 }
             }

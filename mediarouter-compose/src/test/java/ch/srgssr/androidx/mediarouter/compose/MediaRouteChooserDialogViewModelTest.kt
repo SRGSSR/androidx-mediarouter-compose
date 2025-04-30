@@ -27,6 +27,12 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.ChooserState
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_CONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_NAME_CONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_NAME_DISCONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_NAME_GROUP
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_NAME_PRESENTATION
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.findRouteById
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -124,9 +130,10 @@ class MediaRouteChooserDialogViewModelTest {
         viewModel.routes.test {
             assertEquals(
                 expected = listOf(
-                    TestMediaRouteProvider.ROUTE_NAME_CONNECTED,
-                    TestMediaRouteProvider.ROUTE_NAME_DISCONNECTED,
-                    TestMediaRouteProvider.ROUTE_NAME_PRESENTATION,
+                    ROUTE_NAME_CONNECTED,
+                    ROUTE_NAME_DISCONNECTED,
+                    ROUTE_NAME_GROUP,
+                    ROUTE_NAME_PRESENTATION,
                 ),
                 actual = awaitItem().map { it.name },
             )
@@ -198,7 +205,7 @@ class MediaRouteChooserDialogViewModelTest {
             viewModel.showDialog.test {
                 assertTrue(awaitItem())
 
-                router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+                router.findRouteById(ROUTE_ID_CONNECTED).select()
 
                 shadowOf(Looper.getMainLooper()).idle()
 
@@ -239,12 +246,5 @@ class MediaRouteChooserDialogViewModelTest {
 
                 assertIs<MediaRouteChooserDialogViewModel>(viewModel)
             }
-    }
-
-    private fun MediaRouter.selectRouteById(id: String) {
-        val providerFQCN = TestMediaRouteProvider::class.qualifiedName
-        val fullId = "${context.packageName}/$providerFQCN:$id"
-
-        routes.single { it.id == fullId }.select()
     }
 }

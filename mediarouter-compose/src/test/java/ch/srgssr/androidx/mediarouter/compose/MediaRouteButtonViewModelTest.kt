@@ -25,6 +25,11 @@ import androidx.mediarouter.testing.MediaRouterTestHelper
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_CONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_CONNECTING
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_DISCONNECTED
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.ROUTE_ID_INVALID
+import ch.srgssr.androidx.mediarouter.compose.TestMediaRouteProvider.Companion.findRouteById
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -90,7 +95,7 @@ class MediaRouteButtonViewModelTest {
 
     @Test
     fun `check the cast connection state with a connected route`() = runTest {
-        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+        router.findRouteById(ROUTE_ID_CONNECTED).select()
 
         viewModel.castConnectionState.test {
             assertEquals(CastConnectionState.Connected, awaitItem())
@@ -99,7 +104,7 @@ class MediaRouteButtonViewModelTest {
 
     @Test
     fun `check the cast connection state with a connecting route`() = runTest {
-        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTING)
+        router.findRouteById(ROUTE_ID_CONNECTING).select()
 
         viewModel.castConnectionState.test {
             assertEquals(CastConnectionState.Connecting, awaitItem())
@@ -108,7 +113,7 @@ class MediaRouteButtonViewModelTest {
 
     @Test
     fun `check the cast connection state with a disconnected route`() = runTest {
-        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_DISCONNECTED)
+        router.findRouteById(ROUTE_ID_DISCONNECTED).select()
 
         viewModel.castConnectionState.test {
             assertEquals(CastConnectionState.Disconnected, awaitItem())
@@ -117,7 +122,7 @@ class MediaRouteButtonViewModelTest {
 
     @Test(expected = IllegalStateException::class)
     fun `check the cast connection state with an invalid state route`() = runTest {
-        router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_INVALID)
+        router.findRouteById(ROUTE_ID_INVALID).select()
 
         viewModel.castConnectionState.test {
             assertEquals(CastConnectionState.Disconnected, awaitItem())
@@ -174,7 +179,7 @@ class MediaRouteButtonViewModelTest {
     @Test
     fun `check the dialog type when the dialog is hidden with a non-default route`() = runTest {
         viewModel.dialogType.test {
-            router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+            router.findRouteById(ROUTE_ID_CONNECTED).select()
             viewModel.hideDialog()
 
             assertEquals(DialogType.None, awaitItem())
@@ -184,7 +189,7 @@ class MediaRouteButtonViewModelTest {
     @Test
     fun `check the dialog type when the dialog is shown with a non-default route`() = runTest {
         viewModel.dialogType.test {
-            router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+            router.findRouteById(ROUTE_ID_CONNECTED).select()
             viewModel.showDialog()
 
             assertEquals(DialogType.None, awaitItem())
@@ -198,7 +203,7 @@ class MediaRouteButtonViewModelTest {
             router.routerParams = MediaRouterParams.Builder().build()
 
             viewModel.dialogType.test {
-                router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+                router.findRouteById(ROUTE_ID_CONNECTED).select()
                 viewModel.showDialog()
 
                 assertEquals(DialogType.None, awaitItem())
@@ -214,7 +219,7 @@ class MediaRouteButtonViewModelTest {
                 .build()
 
             viewModel.dialogType.test {
-                router.selectRouteById(TestMediaRouteProvider.ROUTE_ID_CONNECTED)
+                router.findRouteById(ROUTE_ID_CONNECTED).select()
                 viewModel.showDialog()
 
                 assertEquals(DialogType.None, awaitItem())
@@ -258,12 +263,5 @@ class MediaRouteButtonViewModelTest {
 
                 assertIs<MediaRouteButtonViewModel>(viewModel)
             }
-    }
-
-    private fun MediaRouter.selectRouteById(id: String) {
-        val providerFQCN = TestMediaRouteProvider::class.qualifiedName
-        val fullId = "${context.packageName}/$providerFQCN:$id"
-
-        routes.single { it.id == fullId }.select()
     }
 }

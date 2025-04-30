@@ -38,21 +38,30 @@ import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 internal class MediaRouteControllerDialogViewModel(
     private val application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val volumeControlEnabled: Boolean,
 ) : AndroidViewModel(application) {
+    internal data class RouteDetail(
+        val route: RouteInfo,
+        val volume: Float,
+        val volumeRange: ClosedFloatingPointRange<Float>,
+    )
+
     private var mediaController: MediaControllerCompat? = null
 
     private val mediaControllerCallback = MediaControllerCallback()
@@ -61,6 +70,7 @@ internal class MediaRouteControllerDialogViewModel(
     private val isGroupVolumeUxEnabled = MediaRouter.isGroupVolumeUxEnabled()
 
     private val routerUpdates = MutableStateFlow(0)
+    private val volumes = MutableStateFlow(emptyMap<RouteInfo, Float>())
 
     @VisibleForTesting
     internal val mediaDescription = MutableStateFlow<MediaDescriptionCompat?>(null)
@@ -71,8 +81,6 @@ internal class MediaRouteControllerDialogViewModel(
     private val _selectedRoute = routerUpdates.map { router.selectedRoute }
 
     val showDialog = savedStateHandle.getStateFlow(KEY_SHOW_DIALOG, true)
-    val selectedRoute = _selectedRoute
-        .stateIn(viewModelScope, WhileSubscribed(), router.selectedRoute)
     val isDeviceGroupExpanded: StateFlow<Boolean> = _isDeviceGroupExpanded.asStateFlow()
 
     val showPlaybackControl =
@@ -84,9 +92,8 @@ internal class MediaRouteControllerDialogViewModel(
             _isDeviceGroupExpanded.update { true }
             false
         } else {
-            selectedRoute.volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+            selectedRoute.isVolumeControlEnabled
                     && (!_isDeviceGroupExpanded.value || isGroupVolumeUxEnabled)
-                    && volumeControlEnabled
         }
     }.stateIn(viewModelScope, WhileSubscribed(), false)
     val imageModel = mediaDescription.map { mediaDescription ->
@@ -136,6 +143,15 @@ internal class MediaRouteControllerDialogViewModel(
         icon to contentDescription
     }.stateIn(viewModelScope, WhileSubscribed(), null)
 
+    /**
+     * Contains the list of routes to manage in the controller. The first item of the list is always
+     * the selected route, while any following routes are member routes of the selected one.
+     * This list is never empty.
+     */
+    val routes = combine(_selectedRoute, volumes) { selectedRoute, volumes ->
+        createRouteDetails(selectedRoute)
+    }.stateIn(viewModelScope, WhileSubscribed(), createRouteDetails(router.selectedRoute))
+
     init {
         router.addCallback(
             MediaRouteSelector.EMPTY,
@@ -159,6 +175,18 @@ internal class MediaRouteControllerDialogViewModel(
                 }
             }
         }
+
+        viewModelScope.launch {
+            @OptIn(FlowPreview::class)
+            volumes.debounce(VOLUME_UPDATE_DELAY)
+                .collect {
+                    it.forEach { (route, volume) ->
+                        if (route.isVolumeControlEnabled && route.volume != volume.toInt()) {
+                            route.requestSetVolume(volume.toInt())
+                        }
+                    }
+                }
+        }
     }
 
     fun hideDialog() {
@@ -170,7 +198,7 @@ internal class MediaRouteControllerDialogViewModel(
     }
 
     fun stopCasting() {
-        if (selectedRoute.value.isSelected) {
+        if (router.selectedRoute.isSelected) {
             router.unselect(MediaRouter.UNSELECT_REASON_STOPPED)
         }
 
@@ -178,7 +206,7 @@ internal class MediaRouteControllerDialogViewModel(
     }
 
     fun disconnect() {
-        if (selectedRoute.value.isSelected) {
+        if (router.selectedRoute.isSelected) {
             router.unselect(MediaRouter.UNSELECT_REASON_DISCONNECTED)
         }
 
@@ -191,7 +219,7 @@ internal class MediaRouteControllerDialogViewModel(
             if (keyEvent.type == KeyEventType.KeyDown && (isGroupVolumeUxEnabled || !isDeviceGroupExpanded)) {
                 val delta = if (keyEvent.key == Key.VolumeDown) -1 else 1
 
-                selectedRoute.value.requestUpdateVolume(delta)
+                router.selectedRoute.requestUpdateVolume(delta)
             }
 
             true
@@ -229,6 +257,15 @@ internal class MediaRouteControllerDialogViewModel(
         }
     }
 
+    fun setRouteVolume(route: RouteInfo, volume: Float) {
+        if (route.isVolumeControlEnabled) {
+            volumes.update {
+                it.toMutableMap()
+                    .apply { set(route, volume) }
+            }
+        }
+    }
+
     override fun onCleared() {
         router.removeCallback(mediaRouterCallback)
         mediaControllerCallback.onSessionDestroyed()
@@ -243,8 +280,38 @@ internal class MediaRouteControllerDialogViewModel(
     private val PlaybackStateCompat.isStopActionSupported: Boolean
         get() = actions and ACTION_STOP != 0L
 
+    private val RouteInfo.isVolumeControlEnabled: Boolean
+        get() = volumeControlEnabled && volumeHandling == RouteInfo.PLAYBACK_VOLUME_VARIABLE
+
+    private fun createRouteDetails(selectedRoute: RouteInfo): List<RouteDetail> {
+        val volumes = volumes.value
+
+        return (listOf(selectedRoute) + selectedRoute.memberRoutes)
+            .map { route ->
+                val isVolumeControlEnabled = route.isVolumeControlEnabled
+                val volumeMax = if (isVolumeControlEnabled) {
+                    route.volumeMax.toFloat()
+                } else {
+                    DEFAULT_MAX_VOLUME
+                }
+                val volume = if (isVolumeControlEnabled) {
+                    volumes[route] ?: route.volume.toFloat()
+                } else {
+                    DEFAULT_MAX_VOLUME
+                }
+
+                RouteDetail(
+                    route = route,
+                    volume = volume,
+                    volumeRange = 0f..volumeMax,
+                )
+            }
+    }
+
     private companion object {
+        private const val DEFAULT_MAX_VOLUME = 100f
         private const val KEY_SHOW_DIALOG = "showDialog"
+        private val VOLUME_UPDATE_DELAY = 500.milliseconds
     }
 
     class Factory(private val volumeControlEnabled: Boolean) : ViewModelProvider.Factory {
@@ -288,7 +355,10 @@ internal class MediaRouteControllerDialogViewModel(
         }
 
         override fun onRouteVolumeChanged(router: MediaRouter, route: RouteInfo) {
-            routerUpdates.update { it + 1 }
+            volumes.update {
+                it.toMutableMap()
+                    .apply { remove(route) }
+            }
         }
     }
 }
