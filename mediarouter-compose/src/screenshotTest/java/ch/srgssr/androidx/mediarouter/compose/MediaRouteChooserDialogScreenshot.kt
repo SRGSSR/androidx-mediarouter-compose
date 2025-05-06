@@ -7,13 +7,12 @@ package ch.srgssr.androidx.mediarouter.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.mediarouter.media.ScreenshotMediaRouter
 import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.ChooserState
 
 class MediaRouteChooserDialogScreenshot {
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun FindingDevicesPreview() {
         ScreenshotTheme {
             ChooserDialog(
@@ -26,7 +25,7 @@ class MediaRouteChooserDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun NoDevicesNoWifiHintPreview() {
         ScreenshotTheme {
             ChooserDialog(
@@ -39,7 +38,7 @@ class MediaRouteChooserDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun NoRoutesPreview() {
         ScreenshotTheme {
             ChooserDialog(
@@ -52,7 +51,7 @@ class MediaRouteChooserDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun ShowingRoutesPreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
@@ -67,7 +66,7 @@ class MediaRouteChooserDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun FindingDevicesCustomTitlePreview() {
         ScreenshotTheme {
             ChooserDialog(
@@ -80,7 +79,7 @@ class MediaRouteChooserDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun NoDevicesNoWifiHintCustomTitlePreview() {
         ScreenshotTheme {
             ChooserDialog(
@@ -93,7 +92,7 @@ class MediaRouteChooserDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun NoRoutesCustomTitlePreview() {
         ScreenshotTheme {
             ChooserDialog(
@@ -106,7 +105,7 @@ class MediaRouteChooserDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun ShowingRoutesCustomTitlePreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 

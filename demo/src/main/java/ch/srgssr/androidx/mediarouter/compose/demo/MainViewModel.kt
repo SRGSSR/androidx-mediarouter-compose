@@ -22,6 +22,8 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.mediarouter.media.MediaControlIntent
+import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import com.google.android.gms.cast.framework.CastContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,9 +37,10 @@ import android.media.MediaMetadata as PlatformMediaMetadata
 @OptIn(UnstableApi::class)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val playerListener = PlayerListener()
+    private val castContext = CastContext.getSharedInstance(application)
     private val mediaSession = MediaSession(application, "androidx-mediarouter-compose-demo")
     private val localPlayer = ExoPlayer.Builder(application).build()
-    private val castPlayer = CastPlayer(CastContext.getSharedInstance(application))
+    private val castPlayer = CastPlayer(castContext)
     private val currentPlayer =
         MutableStateFlow(if (castPlayer.isCastSessionAvailable) castPlayer else localPlayer)
 
@@ -60,6 +63,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             started = WhileSubscribed(5.seconds.inWholeMilliseconds),
             initialValue = currentPlayer.value,
         )
+
+    val routeSelector = castContext.mergedSelector ?: MediaRouteSelector.Builder()
+        .addControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
+        .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
+        .build()
 
     init {
         MediaRouter.getInstance(application).setMediaSession(mediaSession)
