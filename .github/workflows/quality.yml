@@ -95,6 +95,7 @@ jobs:
           min-coverage-overall: 0
           min-coverage-changed-files: 0
           update-comment: true
+          comment-type: both
           title: Code Coverage
           pass-emoji: 🟢
           fail-emoji: 🔴
