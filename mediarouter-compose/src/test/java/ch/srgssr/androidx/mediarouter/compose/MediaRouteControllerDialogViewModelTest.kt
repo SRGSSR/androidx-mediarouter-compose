@@ -795,6 +795,28 @@ class MediaRouteControllerDialogViewModelTest(
             }
     }
 
+    @Test
+    fun `RouteDetail with non-group has no member`() {
+        val routeDetail = RouteDetail(
+            route = router.findRouteById(ROUTE_ID_CONNECTED),
+            volume = 0f,
+            volumeRange = 0f..100f,
+        )
+
+        assertFalse(routeDetail.hasMembers)
+    }
+
+    @Test
+    fun `RouteDetail with group has member`() {
+        val routeDetail = RouteDetail(
+            route = router.findRouteById(ROUTE_ID_GROUP),
+            volume = 0f,
+            volumeRange = 0f..100f,
+        )
+
+        assertTrue(routeDetail.hasMembers)
+    }
+
     private fun getGroupRouteDetail(): RouteDetail {
         val route = router.findRouteById(ROUTE_ID_GROUP)
 
