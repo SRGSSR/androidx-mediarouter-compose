@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.update
 /**
  * The type of dialog to show.
  */
-enum class DialogType {
+public enum class DialogType {
     /**
      * Show the chooser dialog to select a route to connect to.
      */
