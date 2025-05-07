@@ -63,7 +63,7 @@ import ch.srgssr.androidx.mediarouter.compose.MediaRouteChooserDialogViewModel.C
  * @see MediaRouteButton
  */
 @Composable
-fun MediaRouteChooserDialog(
+public fun MediaRouteChooserDialog(
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
     title: String? = null,

@@ -65,8 +65,14 @@ android {
     }
 }
 
+kotlin {
+    explicitApi()
+}
+
 tasks.withType<Test>().configureEach {
     testLogging.exceptionFormat = TestExceptionFormat.FULL
+    // To disable explicit API mode for screenshot tests
+    kotlin.compilerOptions.freeCompilerArgs.add("-Xexplicit-api=disable")
 }
 
 val dokkaHtmlJar by tasks.registering(Jar::class) {
