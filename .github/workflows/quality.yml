@@ -212,3 +212,47 @@ jobs:
         run: |
           echo "::error ::Dependency Analysis failed."
           exit 1
+
+  binary-compatibility-validator:
+    name: Binary Compatibility Validator
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ env.WORKFLOW_PAT }}
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version-file: .github/workflows/.java-version
+          distribution: 'temurin'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
+      - name: Run API check
+        id: api_check
+        continue-on-error: true
+        run: ./gradlew apiCheck
+      - name: Update API dumps
+        id: update_api_dumps
+        if: env.WORKFLOW_PAT != '' && steps.api_check.outcome == 'failure' && github.event_name == 'pull_request'
+        run: ./gradlew apiDump
+      - name: Push new API dumps
+        if: steps.update_api_dumps.outcome == 'success'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          file_pattern: '*/*.api'
+          disable_globbing: true
+          commit_message: "Update API dumps"
+      # If the WORKFLOW_PAT secret is not available (ie. from forks), the push above won't trigger a CI build.
+      # So instead, we ask the contributor to manually update and push the new API dumps.
+      - name: Request API dumps to be updated
+        if: env.WORKFLOW_PAT == '' && steps.api_check.outcome == 'failure' && github.event_name == 'pull_request'
+        run: |
+          echo "::error ::API dumps are outdated. Run './gradlew apiDump' to update them and push the changes."
+          exit 1

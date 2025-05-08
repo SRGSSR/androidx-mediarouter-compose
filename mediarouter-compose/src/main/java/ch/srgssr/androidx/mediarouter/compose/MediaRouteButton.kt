@@ -51,7 +51,7 @@ import androidx.mediarouter.media.MediaRouteSelector
  * @param onDialogTypeChange The callback used to notify when the dialog type has changed.
  */
 @Composable
-fun MediaRouteButton(
+public fun MediaRouteButton(
     modifier: Modifier = Modifier,
     routeSelector: MediaRouteSelector = MediaRouteSelector.EMPTY,
     colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
