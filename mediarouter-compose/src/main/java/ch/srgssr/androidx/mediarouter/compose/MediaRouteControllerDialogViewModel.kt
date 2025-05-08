@@ -52,7 +52,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 internal class MediaRouteControllerDialogViewModel(
-    private val application: Application,
+    application: Application,
     private val savedStateHandle: SavedStateHandle,
     private val volumeControlEnabled: Boolean,
 ) : AndroidViewModel(application) {
