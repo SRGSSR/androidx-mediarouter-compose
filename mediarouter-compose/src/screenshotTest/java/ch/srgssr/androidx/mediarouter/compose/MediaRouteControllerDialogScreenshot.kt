@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.core.graphics.createBitmap
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.ScreenshotMediaRouter
@@ -30,7 +29,7 @@ import coil3.compose.LocalAsyncImagePreviewHandler
 
 class MediaRouteControllerDialogScreenshot {
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun NoControlsPreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
@@ -59,7 +58,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun PlaybackControlPreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
@@ -88,7 +87,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun VolumeControlPreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
@@ -117,7 +116,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun CustomControlViewPreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
@@ -148,7 +147,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun PlaybackControlAndVolumePreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
@@ -177,7 +176,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     private fun CustomControlViewAndVolumeControlPreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
@@ -208,7 +207,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     @OptIn(ExperimentalCoilApi::class)
     private fun ImageUriLandscapePreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
@@ -245,7 +244,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     @OptIn(ExperimentalCoilApi::class)
     private fun ImageUriSquarePreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
@@ -282,7 +281,7 @@ class MediaRouteControllerDialogScreenshot {
     }
 
     @Composable
-    @PreviewLightDark
+    @ScreenshotPreviews
     @OptIn(ExperimentalCoilApi::class)
     private fun ImageUriPortraitPreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
