@@ -1,4 +1,4 @@
-# androidx-mediarouter-compose
+# ![MediaMaestro](.idea/icon.svg) MediaMaestro
 
 [![Last release](https://img.shields.io/github/v/release/SRGSSR/androidx-mediarouter-compose?label=Release&include_prereleases)](https://github.com/SRGSSR/androidx-mediarouter-compose/releases)
 [![Android min SDK](https://img.shields.io/badge/Android-21%2B-34A853)](https://github.com/SRGSSR/androidx-mediarouter-compose)
@@ -32,7 +32,11 @@ the `x.y.z` pattern is pushed.
 See the [license][license] file for more information.
 
 [androidx-mediarouter]: https://developer.android.com/media/routing/mediarouter
+
 [androidx-mediarouter-compose-doc]: https://srgssr.github.io/androidx-mediarouter-compose
+
 [compose]: https://developer.android.com/compose
+
 [license]: https://github.com/SRGSSR/androidx-mediarouter-compose/blob/main/LICENSE
+
 [new-issue]: https://github.com/SRGSSR/androidx-mediarouter-compose/issues/new/choose
