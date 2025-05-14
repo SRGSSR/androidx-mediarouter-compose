@@ -8,8 +8,7 @@ body:
     attributes:
       label: Is there an existing request for this?
       description: >
-        Please search to see if a
-        [request](https://github.com/SRGSSR/androidx-mediarouter-compose/issues)
+        Please search to see if a [request](https://github.com/SRGSSR/MediaMaestro/issues)
         already exists for the feature you want.
       options:
         - label: I have searched existing requests and found no similar ideas.

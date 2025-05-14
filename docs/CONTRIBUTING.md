@@ -45,13 +45,13 @@ This way you can avoid creating an entire pull request we will never be able to 
 
 Templates are available when you want to contribute:
 
-* [Issues](https://github.com/SRGSSR/androidx-mediarouter-compose/issues/new/choose): Please follow
-  our issue template. You can omit information which does not make sense but, in general, the more
-  details you can provide, the better. This ensures we can quickly reproduce the problem you are
-  facing, increasing the likelihood we can fix it.
-* [Pull requests](https://github.com/SRGSSR/androidx-mediarouter-compose/compare): Please follow our
-  code conventions, test your code well, and write unit tests when this makes sense. We will review
-  your work and, if successful, merge it back into the main development branch.
+* [Issues](https://github.com/SRGSSR/MediaMaestro/issues/new/choose): Please follow our issue
+  template. You can omit information which does not make sense but, in general, the more details you
+  can provide, the better. This ensures we can quickly reproduce the problem you are facing,
+  increasing the likelihood we can fix it.
+* [Pull requests](https://github.com/SRGSSR/MediaMaestro/compare): Please follow our code
+  conventions, test your code well, and write unit tests when this makes sense. We will review your
+  work and, if successful, merge it back into the main development branch.
 
 ## Code conventions
 

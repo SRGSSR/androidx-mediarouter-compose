@@ -33,11 +33,11 @@ allprojects {
     afterEvaluate {
         if (pluginManager.hasPlugin("org.jetbrains.dokka")) {
             dokka {
-                moduleName = if (path == ":") "AndroidX MediaRouter Compose" else name
+                moduleName = if (path == ":") "MediaMaestro" else name
                 moduleVersion = providers.environmentVariable("VERSION_NAME").orElse("main")
 
                 pluginsConfiguration.html {
-                    customStyleSheets.from(layout.settingsDirectory.file("config/dokka/androidx-mediarouter-compose.css"))
+                    customStyleSheets.from(layout.settingsDirectory.file("config/dokka/media-maestro.css"))
                     footerMessage = "© SRG SSR"
                 }
 
@@ -51,7 +51,7 @@ allprojects {
 
                     sourceLink {
                         localDirectory.set(layout.projectDirectory.dir("src"))
-                        remoteUrl("https://github.com/SRGSSR/androidx-mediarouter-compose/tree/${moduleVersion.get()}/${project.name}/src")
+                        remoteUrl("https://github.com/SRGSSR/MediaMaestro/tree/${moduleVersion.get()}/${project.name}/src")
                     }
                 }
             }
@@ -66,9 +66,9 @@ subprojects {
 apiValidation {
     ignoredProjects.add("demo")
     // See https://github.com/Kotlin/binary-compatibility-validator/issues/74
-    ignoredClasses.add("ch.srgssr.androidx.mediarouter.compose.ComposableSingletons\$CastIconKt")
-    ignoredClasses.add("ch.srgssr.androidx.mediarouter.compose.ComposableSingletons\$MediaRouteChooserDialogKt")
-    ignoredClasses.add("ch.srgssr.androidx.mediarouter.compose.ComposableSingletons\$MediaRouteControllerDialogKt")
+    ignoredClasses.add("ch.srgssr.media.maestro.ComposableSingletons\$CastIconKt")
+    ignoredClasses.add("ch.srgssr.media.maestro.ComposableSingletons\$MediaRouteChooserDialogKt")
+    ignoredClasses.add("ch.srgssr.media.maestro.ComposableSingletons\$MediaRouteControllerDialogKt")
 }
 
 dokka {
@@ -98,7 +98,7 @@ dependencyAnalysis {
 }
 
 dependencies {
-    dokka(project(":mediarouter-compose"))
+    dokka(project(":media-maestro"))
 
-    kover(project(":mediarouter-compose"))
+    kover(project(":media-maestro"))
 }
