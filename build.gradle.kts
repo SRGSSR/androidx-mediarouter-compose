@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.dokka.javadoc) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.kotlinx.binary.compatibility.validator)
     alias(libs.plugins.kotlinx.kover)
 }
 
@@ -60,6 +61,14 @@ allprojects {
 
 subprojects {
     pluginManager.apply("com.autonomousapps.dependency-analysis")
+}
+
+apiValidation {
+    ignoredProjects.add("demo")
+    // See https://github.com/Kotlin/binary-compatibility-validator/issues/74
+    ignoredClasses.add("ch.srgssr.androidx.mediarouter.compose.ComposableSingletons\$CastIconKt")
+    ignoredClasses.add("ch.srgssr.androidx.mediarouter.compose.ComposableSingletons\$MediaRouteChooserDialogKt")
+    ignoredClasses.add("ch.srgssr.androidx.mediarouter.compose.ComposableSingletons\$MediaRouteControllerDialogKt")
 }
 
 dokka {

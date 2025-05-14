@@ -64,7 +64,7 @@ import coil3.compose.AsyncImagePainter
  * @see MediaRouteButton
  */
 @Composable
-fun MediaRouteControllerDialog(
+public fun MediaRouteControllerDialog(
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
     volumeControlEnabled: Boolean = true,
