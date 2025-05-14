@@ -47,6 +47,7 @@ android {
         checkAllWarnings = true
         checkDependencies = true
         disable.add("GradleDependency")
+        disable.add("NewerVersionAvailable")
         sarifReport = true
         warningsAsErrors = true
     }

@@ -3,7 +3,5 @@
   ~ License information is available from the LICENSE file.
   -->
 <resources>
-    <string name="app_name">MediaMaestro Demo</string>
-    <string name="use_androidx">Use AndroidX</string>
-    <string name="use_compose">Use Compose</string>
+    <color name="ic_launcher_background">#1C9BCE</color>
 </resources>
