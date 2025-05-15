@@ -37,6 +37,7 @@ allprojects {
                 moduleVersion = providers.environmentVariable("VERSION_NAME").orElse("main")
 
                 pluginsConfiguration.html {
+                    customAssets.from(layout.settingsDirectory.file("config/dokka/logo-icon.svg"))
                     customStyleSheets.from(layout.settingsDirectory.file("config/dokka/media-maestro.css"))
                     footerMessage = "© SRG SSR"
                 }
