@@ -5,6 +5,8 @@
 
 package ch.srgssr.media.maestro
 
+import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,8 +14,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -217,11 +220,12 @@ private fun ControllerDialogContent(
 ) {
     @Suppress("NoNameShadowing")
     val showPlaybackControl = showPlaybackControl && customControlView == null
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         customControlView?.invoke()
 
-        if (imageModel != null) {
+        AnimatedVisibility(visible = imageModel != null && !isLandscape) {
             Image(
                 imageModel = imageModel,
                 modifier = Modifier.fillMaxWidth(),
@@ -257,7 +261,7 @@ private fun ControllerDialogContent(
             }
         }
 
-        if (isDeviceGroupExpanded) {
+        AnimatedVisibility(visible = isDeviceGroupExpanded) {
             DeviceGroup(
                 routeDetails = groupRouteDetails,
                 modifier = Modifier
@@ -371,7 +375,7 @@ private fun VolumeControl(
             valueRange = routeDetail.volumeRange,
         )
 
-        if (routeDetail.route.isGroup && routeDetail.route.memberRoutes.size > 1) {
+        if (routeDetail.hasMembers) {
             IconButton(onClick = onExpandCollapseClick) {
                 val scale by animateFloatAsState(targetValue = if (isExpanded) -1f else 1f)
                 val contentDescriptionRes = if (isExpanded) {
@@ -396,11 +400,11 @@ private fun DeviceGroup(
     modifier: Modifier = Modifier,
     onVolumeChange: (route: RouteInfo, volume: Float) -> Unit,
 ) {
-    LazyColumn(
+    Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        items(routeDetails) { (route, volume, volumeRange) ->
+        routeDetails.forEach { (route, volume, volumeRange) ->
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = route.name,
