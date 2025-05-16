@@ -39,16 +39,11 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.mediarouter.app.MediaRouteButton
-import androidx.mediarouter.media.MediaControlIntent
 import androidx.mediarouter.media.MediaRouteSelector
 import ch.srgssr.media.maestro.MediaRouteButton
 
 class MainActivity : FragmentActivity() {
     private val mainViewModel by viewModels<MainViewModel>()
-    private val routeSelector = MediaRouteSelector.Builder()
-        .addControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
-        .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
-        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +59,7 @@ class MainActivity : FragmentActivity() {
                 MainView(
                     player = player,
                     useMaestro = useMaestro,
-                    routeSelector = routeSelector,
+                    routeSelector = mainViewModel.routeSelector,
                     modifier = Modifier.fillMaxSize(),
                     onFabClick = { useMaestro = !useMaestro },
                 )
