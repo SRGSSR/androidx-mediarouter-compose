@@ -9,31 +9,30 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwitchLeft
-import androidx.compose.material.icons.filled.SwitchRight
+import androidx.compose.material.icons.filled.Android
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
 import androidx.media3.common.Player
@@ -54,15 +53,15 @@ class MainActivity : FragmentActivity() {
         setContent {
             val player by mainViewModel.player.collectAsState()
 
-            var useCompose by remember { mutableStateOf(true) }
+            var useMaestro by remember { mutableStateOf(true) }
 
             DemoTheme {
                 MainView(
                     player = player,
-                    useCompose = useCompose,
+                    useMaestro = useMaestro,
                     routeSelector = mainViewModel.routeSelector,
                     modifier = Modifier.fillMaxSize(),
-                    onFabClick = { useCompose = !useCompose },
+                    onFabClick = { useMaestro = !useMaestro },
                 )
             }
         }
@@ -70,65 +69,68 @@ class MainActivity : FragmentActivity() {
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 internal fun MainView(
     player: Player,
-    useCompose: Boolean,
+    useMaestro: Boolean,
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
     onFabClick: () -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(R.string.app_name)) },
+                actions = {
+                    CastIcon(
+                        useMaestro = useMaestro,
+                        routeSelector = routeSelector,
+                    )
+                },
+            )
+        },
         floatingActionButton = {
             SwitchImplementationButton(
-                useCompose = useCompose,
+                useMaestro = useMaestro,
                 onClick = onFabClick,
             )
         },
     ) { innerPadding ->
-        Box(
+        Player(
+            player = player,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            Player(
-                player = player,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(fraction = 0.5f)
-                    .align(Alignment.CenterStart),
-            )
-
-            CastIcon(
-                useCompose = useCompose,
-                routeSelector = routeSelector,
-                modifier = Modifier
-                    .padding(all = 16.dp)
-                    .align(Alignment.TopEnd),
-            )
-        }
+                .padding(innerPadding)
+                .fillMaxWidth()
+                .fillMaxHeight(fraction = 0.5f),
+        )
     }
 }
 
 @Composable
 private fun SwitchImplementationButton(
-    useCompose: Boolean,
+    useMaestro: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     ExtendedFloatingActionButton(
         text = {
-            val textResId = if (useCompose) R.string.use_androidx else R.string.use_compose
+            val textResId = if (useMaestro) R.string.use_androidx else R.string.use_maestro
 
             Text(text = stringResource(textResId))
         },
         icon = {
-            val icon = if (useCompose) Icons.Default.SwitchLeft else Icons.Default.SwitchRight
-
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-            )
+            if (useMaestro) {
+                Icon(
+                    imageVector = Icons.Default.Android,
+                    contentDescription = null,
+                )
+            } else {
+                Icon(
+                    painter = painterResource(R.drawable.ic_media_maestro),
+                    contentDescription = null,
+                )
+            }
         },
         onClick = onClick,
         modifier = modifier,
@@ -137,11 +139,11 @@ private fun SwitchImplementationButton(
 
 @Composable
 private fun CastIcon(
-    useCompose: Boolean,
+    useMaestro: Boolean,
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
 ) {
-    if (useCompose) {
+    if (useMaestro) {
         MediaRouteButton(
             modifier = modifier,
             routeSelector = routeSelector,
@@ -185,7 +187,7 @@ private fun MainViewAndroidXPreview() {
 
             MainView(
                 player = ExoPlayer.Builder(context).build(),
-                useCompose = false,
+                useMaestro = false,
                 routeSelector = MediaRouteSelector.EMPTY,
                 onFabClick = {},
             )
@@ -202,7 +204,7 @@ private fun MainViewComposePreview() {
 
             MainView(
                 player = ExoPlayer.Builder(context).build(),
-                useCompose = true,
+                useMaestro = true,
                 routeSelector = MediaRouteSelector.EMPTY,
                 onFabClick = {},
             )

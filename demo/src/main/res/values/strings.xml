@@ -5,5 +5,5 @@
 <resources>
     <string name="app_name">MediaMaestro Demo</string>
     <string name="use_androidx">Use AndroidX</string>
-    <string name="use_compose">Use Compose</string>
+    <string name="use_maestro">Use Maestro</string>
 </resources>
