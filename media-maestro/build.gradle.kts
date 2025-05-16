@@ -66,7 +66,7 @@ android {
 }
 
 kotlin {
-    // explicitApi()
+    explicitApi()
 }
 
 tasks.withType<Test>().configureEach {
