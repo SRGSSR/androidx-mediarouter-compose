@@ -1,9 +1,9 @@
 # ![MediaMaestro](.idea/icon.svg) MediaMaestro
 
-[![Last release](https://img.shields.io/github/v/release/SRGSSR/androidx-mediarouter-compose?label=Release&include_prereleases)](https://github.com/SRGSSR/androidx-mediarouter-compose/releases)
-[![Android min SDK](https://img.shields.io/badge/Android-21%2B-34A853)](https://github.com/SRGSSR/androidx-mediarouter-compose)
-[![Build status](https://img.shields.io/github/actions/workflow/status/SRGSSR/androidx-mediarouter-compose/quality.yml?label=Build)](https://github.com/SRGSSR/androidx-mediarouter-compose/actions/workflows/quality.yml)
-[![License](https://img.shields.io/github/license/SRGSSR/androidx-mediarouter-compose?label=License)](https://github.com/SRGSSR/androidx-mediarouter-compose/blob/main/LICENSE)
+[![Last release](https://img.shields.io/github/v/release/SRGSSR/MediaMaestro?label=Release&include_prereleases)](https://github.com/SRGSSR/MediaMaestro/releases)
+[![Android min SDK](https://img.shields.io/badge/Android-21%2B-34A853)](https://github.com/SRGSSR/MediaMaestro)
+[![Build status](https://img.shields.io/github/actions/workflow/status/SRGSSR/MediaMaestro/quality.yml?label=Build)](https://github.com/SRGSSR/MediaMaestro/actions/workflows/quality.yml)
+[![License](https://img.shields.io/github/license/SRGSSR/MediaMaestro?label=License)](https://github.com/SRGSSR/MediaMaestro/blob/main/LICENSE)
 
 Simplify media routing in your [Compose][compose] app with this native Material
 3 [MediaRouter][androidx-mediarouter] library. Enjoy easy integration, a pure Compose-friendly
@@ -19,8 +19,7 @@ creating seamless media experiences for your users.
 
 ## Getting started
 
-Please check the [documentation][androidx-mediarouter-compose-doc] to know how to use AndroidX
-MediaRouter Compose in your project.
+Please check the [documentation][media-maestro-doc] to know how to use MediaMaestro in your project.
 
 ## Release
 
@@ -32,11 +31,7 @@ the `x.y.z` pattern is pushed.
 See the [license][license] file for more information.
 
 [androidx-mediarouter]: https://developer.android.com/media/routing/mediarouter
-
-[androidx-mediarouter-compose-doc]: https://srgssr.github.io/androidx-mediarouter-compose
-
 [compose]: https://developer.android.com/compose
-
-[license]: https://github.com/SRGSSR/androidx-mediarouter-compose/blob/main/LICENSE
-
-[new-issue]: https://github.com/SRGSSR/androidx-mediarouter-compose/issues/new/choose
+[license]: https://github.com/SRGSSR/MediaMaestro/blob/main/LICENSE
+[media-maestro-doc]: https://srgssr.github.io/MediaMaestro
+[new-issue]: https://github.com/SRGSSR/MediaMaestro/issues/new/choose

@@ -10,11 +10,11 @@ plugins {
 }
 
 android {
-    namespace = "ch.srgssr.androidx.mediarouter.compose.demo"
+    namespace = "ch.srgssr.media.maestro.demo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "ch.srgssr.androidx.mediarouter.compose.demo"
+        applicationId = "ch.srgssr.media.maestro.demo"
         minSdk = 21
         targetSdk = 36
         versionCode = 1
@@ -54,7 +54,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":mediarouter-compose"))
+    implementation(project(":media-maestro"))
     implementation(libs.androidx.activity)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.annotation.experimental)

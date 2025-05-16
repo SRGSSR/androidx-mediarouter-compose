@@ -25,6 +25,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "androidx-mediarouter-compose"
+rootProject.name = "MediaMaestro"
 
-include(":demo", ":mediarouter-compose")
+include(":demo", ":media-maestro")
