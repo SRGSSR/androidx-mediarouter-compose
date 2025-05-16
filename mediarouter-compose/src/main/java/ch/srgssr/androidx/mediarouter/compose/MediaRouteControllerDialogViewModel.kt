@@ -60,7 +60,10 @@ internal class MediaRouteControllerDialogViewModel(
         val route: RouteInfo,
         val volume: Float,
         val volumeRange: ClosedFloatingPointRange<Float>,
-    )
+    ) {
+        val hasMembers: Boolean
+            get() = route.isGroup && route.memberRoutes.size > 1
+    }
 
     private var mediaController: MediaControllerCompat? = null
 
