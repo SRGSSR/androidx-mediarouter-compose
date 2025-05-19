@@ -14,10 +14,10 @@ public final class ch/srgssr/media/maestro/MediaRouteButtonKt {
 }
 
 public final class ch/srgssr/media/maestro/MediaRouteChooserDialogKt {
-	public static final fun MediaRouteChooserDialog (Landroidx/mediarouter/media/MediaRouteSelector;Landroidx/compose/ui/Modifier;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+	public static final fun MediaRouteChooserDialog-4WKCkc4 (Landroidx/mediarouter/media/MediaRouteSelector;Landroidx/compose/ui/Modifier;Ljava/lang/String;Landroidx/compose/ui/graphics/Shape;JLandroidx/compose/material3/ButtonColors;JJJLandroidx/compose/material3/ListItemColors;FLandroidx/compose/ui/window/DialogProperties;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;III)V
 }
 
 public final class ch/srgssr/media/maestro/MediaRouteControllerDialogKt {
-	public static final fun MediaRouteControllerDialog (Landroidx/mediarouter/media/MediaRouteSelector;Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun MediaRouteControllerDialog-yZtJe0c (Landroidx/mediarouter/media/MediaRouteSelector;Landroidx/compose/ui/Modifier;ZLandroidx/compose/ui/graphics/Shape;JLandroidx/compose/material3/ButtonColors;JJJFLandroidx/compose/ui/window/DialogProperties;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;III)V
 }
 
