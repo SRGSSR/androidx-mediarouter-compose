@@ -9,14 +9,19 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import androidx.annotation.ColorInt
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.createBitmap
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.ScreenshotMediaRouter
@@ -44,6 +49,14 @@ class MediaRouteControllerDialogScreenshot {
                 showPlaybackControl = false,
                 showVolumeControl = false,
                 groupRouteDetails = emptyList(),
+                shape = AlertDialogDefaults.shape,
+                containerColor = AlertDialogDefaults.containerColor,
+                buttonColors = ButtonDefaults.textButtonColors(),
+                iconContentColor = AlertDialogDefaults.iconContentColor,
+                titleContentColor = AlertDialogDefaults.titleContentColor,
+                textContentColor = AlertDialogDefaults.textContentColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                properties = DialogProperties(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -73,6 +86,14 @@ class MediaRouteControllerDialogScreenshot {
                 showPlaybackControl = true,
                 showVolumeControl = false,
                 groupRouteDetails = emptyList(),
+                shape = AlertDialogDefaults.shape,
+                containerColor = AlertDialogDefaults.containerColor,
+                buttonColors = ButtonDefaults.textButtonColors(),
+                iconContentColor = AlertDialogDefaults.iconContentColor,
+                titleContentColor = AlertDialogDefaults.titleContentColor,
+                textContentColor = AlertDialogDefaults.textContentColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                properties = DialogProperties(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -102,6 +123,14 @@ class MediaRouteControllerDialogScreenshot {
                 showPlaybackControl = false,
                 showVolumeControl = true,
                 groupRouteDetails = emptyList(),
+                shape = AlertDialogDefaults.shape,
+                containerColor = AlertDialogDefaults.containerColor,
+                buttonColors = ButtonDefaults.textButtonColors(),
+                iconContentColor = AlertDialogDefaults.iconContentColor,
+                titleContentColor = AlertDialogDefaults.titleContentColor,
+                textContentColor = AlertDialogDefaults.textContentColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                properties = DialogProperties(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -131,6 +160,14 @@ class MediaRouteControllerDialogScreenshot {
                 showPlaybackControl = true,
                 showVolumeControl = false,
                 groupRouteDetails = emptyList(),
+                shape = AlertDialogDefaults.shape,
+                containerColor = AlertDialogDefaults.containerColor,
+                buttonColors = ButtonDefaults.textButtonColors(),
+                iconContentColor = AlertDialogDefaults.iconContentColor,
+                titleContentColor = AlertDialogDefaults.titleContentColor,
+                textContentColor = AlertDialogDefaults.textContentColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                properties = DialogProperties(),
                 customControlView = {
                     Text(text = "Custom control view")
                 },
@@ -162,6 +199,53 @@ class MediaRouteControllerDialogScreenshot {
                 showPlaybackControl = true,
                 showVolumeControl = true,
                 groupRouteDetails = emptyList(),
+                shape = AlertDialogDefaults.shape,
+                containerColor = AlertDialogDefaults.containerColor,
+                buttonColors = ButtonDefaults.textButtonColors(),
+                iconContentColor = AlertDialogDefaults.iconContentColor,
+                titleContentColor = AlertDialogDefaults.titleContentColor,
+                textContentColor = AlertDialogDefaults.textContentColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                properties = DialogProperties(),
+                customControlView = null,
+                toggleDeviceGroup = {},
+                onKeyEvent = { false },
+                onPlaybackTitleClick = {},
+                onPlaybackIconClick = {},
+                onStopCasting = {},
+                onDisconnect = {},
+                onDismissRequest = {},
+                onVolumeChange = { _, _ -> },
+            )
+        }
+    }
+
+    @Composable
+    @ScreenshotPreviews
+    private fun PlaybackControlAndVolumeCustomStylePreview() {
+        val router = ScreenshotMediaRouter(LocalContext.current)
+
+        ScreenshotTheme {
+            ControllerDialog(
+                routeDetail = routeDetail(router.routes[0]),
+                imageModel = null,
+                title = "Media title",
+                subtitle = "Media subtitle",
+                iconInfo = Icons.Default.PlayArrow to "Play",
+                isDeviceGroupExpanded = false,
+                showPlaybackControl = true,
+                showVolumeControl = true,
+                groupRouteDetails = emptyList(),
+                shape = CutCornerShape(32.dp),
+                containerColor = MaterialTheme.colorScheme.secondary,
+                buttonColors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.inversePrimary,
+                ),
+                iconContentColor = MaterialTheme.colorScheme.inversePrimary,
+                titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                textContentColor = MaterialTheme.colorScheme.onPrimary,
+                tonalElevation = 16.dp,
+                properties = DialogProperties(),
                 customControlView = null,
                 toggleDeviceGroup = {},
                 onKeyEvent = { false },
@@ -191,6 +275,14 @@ class MediaRouteControllerDialogScreenshot {
                 showPlaybackControl = true,
                 showVolumeControl = true,
                 groupRouteDetails = emptyList(),
+                shape = AlertDialogDefaults.shape,
+                containerColor = AlertDialogDefaults.containerColor,
+                buttonColors = ButtonDefaults.textButtonColors(),
+                iconContentColor = AlertDialogDefaults.iconContentColor,
+                titleContentColor = AlertDialogDefaults.titleContentColor,
+                textContentColor = AlertDialogDefaults.textContentColor,
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                properties = DialogProperties(),
                 customControlView = {
                     Text(text = "Custom control view")
                 },
@@ -229,6 +321,14 @@ class MediaRouteControllerDialogScreenshot {
                     showPlaybackControl = true,
                     showVolumeControl = true,
                     groupRouteDetails = emptyList(),
+                    shape = AlertDialogDefaults.shape,
+                    containerColor = AlertDialogDefaults.containerColor,
+                    buttonColors = ButtonDefaults.textButtonColors(),
+                    iconContentColor = AlertDialogDefaults.iconContentColor,
+                    titleContentColor = AlertDialogDefaults.titleContentColor,
+                    textContentColor = AlertDialogDefaults.textContentColor,
+                    tonalElevation = AlertDialogDefaults.TonalElevation,
+                    properties = DialogProperties(),
                     customControlView = null,
                     toggleDeviceGroup = {},
                     onKeyEvent = { false },
@@ -266,6 +366,14 @@ class MediaRouteControllerDialogScreenshot {
                     showPlaybackControl = true,
                     showVolumeControl = true,
                     groupRouteDetails = emptyList(),
+                    shape = AlertDialogDefaults.shape,
+                    containerColor = AlertDialogDefaults.containerColor,
+                    buttonColors = ButtonDefaults.textButtonColors(),
+                    iconContentColor = AlertDialogDefaults.iconContentColor,
+                    titleContentColor = AlertDialogDefaults.titleContentColor,
+                    textContentColor = AlertDialogDefaults.textContentColor,
+                    tonalElevation = AlertDialogDefaults.TonalElevation,
+                    properties = DialogProperties(),
                     customControlView = null,
                     toggleDeviceGroup = {},
                     onKeyEvent = { false },
@@ -307,6 +415,14 @@ class MediaRouteControllerDialogScreenshot {
                     showPlaybackControl = true,
                     showVolumeControl = true,
                     groupRouteDetails = emptyList(),
+                    shape = AlertDialogDefaults.shape,
+                    containerColor = AlertDialogDefaults.containerColor,
+                    buttonColors = ButtonDefaults.textButtonColors(),
+                    iconContentColor = AlertDialogDefaults.iconContentColor,
+                    titleContentColor = AlertDialogDefaults.titleContentColor,
+                    textContentColor = AlertDialogDefaults.textContentColor,
+                    tonalElevation = AlertDialogDefaults.TonalElevation,
+                    properties = DialogProperties(),
                     customControlView = null,
                     toggleDeviceGroup = {},
                     onKeyEvent = { false },

@@ -17,10 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
@@ -40,7 +47,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.mediarouter.R
 import androidx.mediarouter.media.MediaRouteSelector
@@ -60,6 +69,17 @@ import coil3.compose.AsyncImagePainter
  * @param modifier The [Modifier] to be applied to this dialog.
  * @param volumeControlEnabled Whether to enable the volume slider and volume control using the
  * volume keys when the route supports it.
+ * @param shape The shape of the dialog.
+ * @param containerColor The color used for the background of the dialog. Use [Color.Transparent] to
+ * have no color.
+ * @param buttonColors The colors used for buttons.
+ * @param iconContentColor The content color used for the icon.
+ * @param titleContentColor The content color used for the title.
+ * @param textContentColor The content color used for the text.
+ * @param tonalElevation When [containerColor] is [ColorScheme.surface], a translucent primary color
+ * overlay is applied on top of the container. A higher tonal elevation value will result in a
+ * darker color in light theme and lighter color in dark theme. See also: [Surface].
+ * @param properties Typically platform specific properties to further configure the dialog.
  * @param onDismissRequest The action to perform when this dialog is dismissed.
  * @param customControlView The view that will replace the default media controls for the currently
  * playing content.
@@ -71,6 +91,14 @@ public fun MediaRouteControllerDialog(
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
     volumeControlEnabled: Boolean = true,
+    shape: Shape = AlertDialogDefaults.shape,
+    containerColor: Color = AlertDialogDefaults.containerColor,
+    buttonColors: ButtonColors = ButtonDefaults.textButtonColors(),
+    iconContentColor: Color = AlertDialogDefaults.iconContentColor,
+    titleContentColor: Color = AlertDialogDefaults.titleContentColor,
+    textContentColor: Color = AlertDialogDefaults.textContentColor,
+    tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
+    properties: DialogProperties = DialogProperties(),
     onDismissRequest: () -> Unit,
     customControlView: @Composable (() -> Unit)? = null,
 ) {
@@ -107,6 +135,14 @@ public fun MediaRouteControllerDialog(
         showVolumeControl = showVolumeControl,
         groupRouteDetails = groupRouteDetails,
         modifier = modifier,
+        shape = shape,
+        containerColor = containerColor,
+        buttonColors = buttonColors,
+        iconContentColor = iconContentColor,
+        titleContentColor = titleContentColor,
+        textContentColor = textContentColor,
+        tonalElevation = tonalElevation,
+        properties = properties,
         customControlView = customControlView,
         toggleDeviceGroup = viewModel::toggleDeviceGroup,
         onKeyEvent = viewModel::onKeyEvent,
@@ -120,6 +156,7 @@ public fun MediaRouteControllerDialog(
 }
 
 @Composable
+@Suppress("LongMethod")
 internal fun ControllerDialog(
     routeDetail: RouteDetail,
     imageModel: Any?,
@@ -131,6 +168,14 @@ internal fun ControllerDialog(
     showVolumeControl: Boolean,
     groupRouteDetails: List<RouteDetail>,
     modifier: Modifier = Modifier,
+    shape: Shape,
+    containerColor: Color,
+    buttonColors: ButtonColors,
+    iconContentColor: Color,
+    titleContentColor: Color,
+    textContentColor: Color,
+    tonalElevation: Dp,
+    properties: DialogProperties,
     customControlView: @Composable (() -> Unit)?,
     toggleDeviceGroup: () -> Unit,
     onKeyEvent: (keyEvent: KeyEvent) -> Boolean,
@@ -144,14 +189,20 @@ internal fun ControllerDialog(
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            TextButton(onClick = onStopCasting) {
+            TextButton(
+                onClick = onStopCasting,
+                colors = buttonColors,
+            ) {
                 Text(text = stringResource(R.string.mr_controller_stop_casting))
             }
         },
         modifier = modifier.onKeyEvent(onKeyEvent),
         dismissButton = if (routeDetail.route.canDisconnect()) {
             {
-                TextButton(onClick = onDisconnect) {
+                TextButton(
+                    onClick = onDisconnect,
+                    colors = buttonColors,
+                ) {
                     Text(text = stringResource(R.string.mr_controller_disconnect))
                 }
             }
@@ -185,6 +236,7 @@ internal fun ControllerDialog(
                 title = title,
                 subtitle = subtitle,
                 iconInfo = iconInfo,
+                iconContentColor = iconContentColor,
                 isDeviceGroupExpanded = isDeviceGroupExpanded,
                 showPlaybackControl = showPlaybackControl,
                 showVolumeControl = showVolumeControl,
@@ -197,6 +249,13 @@ internal fun ControllerDialog(
                 onVolumeChange = onVolumeChange,
             )
         },
+        shape = shape,
+        containerColor = containerColor,
+        iconContentColor = iconContentColor,
+        titleContentColor = titleContentColor,
+        textContentColor = textContentColor,
+        tonalElevation = tonalElevation,
+        properties = properties,
     )
 }
 
@@ -207,6 +266,7 @@ private fun ControllerDialogContent(
     title: String?,
     subtitle: String?,
     iconInfo: Pair<ImageVector, String>?,
+    iconContentColor: Color,
     isDeviceGroupExpanded: Boolean,
     showPlaybackControl: Boolean,
     showVolumeControl: Boolean,
@@ -243,6 +303,7 @@ private fun ControllerDialogContent(
                     title = title,
                     subtitle = subtitle,
                     icon = iconInfo?.first,
+                    iconContentColor = iconContentColor,
                     contentDescription = iconInfo?.second,
                     modifier = Modifier.fillMaxWidth(),
                     onTitleClick = onPlaybackTitleClick,
@@ -253,6 +314,7 @@ private fun ControllerDialogContent(
             if (showVolumeControl) {
                 VolumeControl(
                     routeDetail = routeDetail,
+                    iconContentColor = iconContentColor,
                     modifier = Modifier.fillMaxWidth(),
                     isExpanded = isDeviceGroupExpanded,
                     onExpandCollapseClick = onToggleDeviceGroup,
@@ -264,6 +326,7 @@ private fun ControllerDialogContent(
         AnimatedVisibility(visible = isDeviceGroupExpanded) {
             DeviceGroup(
                 routeDetails = groupRouteDetails,
+                iconContentColor = iconContentColor,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
@@ -306,6 +369,7 @@ private fun PlaybackControlRow(
     title: CharSequence?,
     subtitle: CharSequence?,
     icon: ImageVector?,
+    iconContentColor: Color,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     onTitleClick: () -> Unit,
@@ -344,6 +408,7 @@ private fun PlaybackControlRow(
                 Icon(
                     imageVector = icon,
                     contentDescription = contentDescription,
+                    tint = iconContentColor,
                 )
             }
         }
@@ -353,6 +418,7 @@ private fun PlaybackControlRow(
 @Composable
 private fun VolumeControl(
     routeDetail: RouteDetail,
+    iconContentColor: Color,
     modifier: Modifier = Modifier,
     isExpanded: Boolean,
     onExpandCollapseClick: () -> Unit,
@@ -366,6 +432,7 @@ private fun VolumeControl(
         Icon(
             imageVector = Icons.Audiotrack,
             contentDescription = null,
+            tint = iconContentColor,
         )
 
         Slider(
@@ -388,6 +455,7 @@ private fun VolumeControl(
                     imageVector = Icons.ExpandMore,
                     contentDescription = stringResource(contentDescriptionRes),
                     modifier = Modifier.scale(scaleX = 1f, scaleY = scale),
+                    tint = iconContentColor,
                 )
             }
         }
@@ -397,6 +465,7 @@ private fun VolumeControl(
 @Composable
 private fun DeviceGroup(
     routeDetails: List<RouteDetail>,
+    iconContentColor: Color,
     modifier: Modifier = Modifier,
     onVolumeChange: (route: RouteInfo, volume: Float) -> Unit,
 ) {
@@ -420,6 +489,7 @@ private fun DeviceGroup(
                     Icon(
                         imageVector = Icons.Audiotrack,
                         contentDescription = null,
+                        tint = iconContentColor,
                     )
 
                     Slider(

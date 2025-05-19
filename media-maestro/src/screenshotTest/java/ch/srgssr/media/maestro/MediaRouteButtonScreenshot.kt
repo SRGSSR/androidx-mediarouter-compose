@@ -6,6 +6,7 @@
 package ch.srgssr.media.maestro
 
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 
@@ -83,6 +84,54 @@ class MediaRouteButtonScreenshot {
                 state = CastConnectionState.Connected,
                 fixedIcon = true,
                 colors = IconButtonDefaults.iconButtonColors(),
+                onClick = {},
+            )
+        }
+    }
+
+    @Composable
+    @PreviewLightDark
+    private fun DisconnectedCustomStylePreview() {
+        ScreenshotTheme {
+            MediaRouteButton(
+                state = CastConnectionState.Disconnected,
+                fixedIcon = false,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+                onClick = {},
+            )
+        }
+    }
+
+    @Composable
+    @PreviewLightDark
+    private fun ConnectingCustomStylePreview() {
+        ScreenshotTheme {
+            MediaRouteButton(
+                state = CastConnectionState.Connecting,
+                fixedIcon = false,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+                onClick = {},
+            )
+        }
+    }
+
+    @Composable
+    @PreviewLightDark
+    private fun ConnectedCustomStylePreview() {
+        ScreenshotTheme {
+            MediaRouteButton(
+                state = CastConnectionState.Connected,
+                fixedIcon = false,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
                 onClick = {},
             )
         }
