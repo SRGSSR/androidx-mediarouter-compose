@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
@@ -60,6 +62,7 @@ import coil3.compose.AsyncImagePainter
  * @param modifier The [Modifier] to be applied to this dialog.
  * @param volumeControlEnabled Whether to enable the volume slider and volume control using the
  * volume keys when the route supports it.
+ * @param shape The shape of the dialog.
  * @param onDismissRequest The action to perform when this dialog is dismissed.
  * @param customControlView The view that will replace the default media controls for the currently
  * playing content.
@@ -71,6 +74,7 @@ public fun MediaRouteControllerDialog(
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
     volumeControlEnabled: Boolean = true,
+    shape: Shape = AlertDialogDefaults.shape,
     onDismissRequest: () -> Unit,
     customControlView: @Composable (() -> Unit)? = null,
 ) {
@@ -107,6 +111,7 @@ public fun MediaRouteControllerDialog(
         showVolumeControl = showVolumeControl,
         groupRouteDetails = groupRouteDetails,
         modifier = modifier,
+        shape = shape,
         customControlView = customControlView,
         toggleDeviceGroup = viewModel::toggleDeviceGroup,
         onKeyEvent = viewModel::onKeyEvent,
@@ -131,6 +136,7 @@ internal fun ControllerDialog(
     showVolumeControl: Boolean,
     groupRouteDetails: List<RouteDetail>,
     modifier: Modifier = Modifier,
+    shape: Shape,
     customControlView: @Composable (() -> Unit)?,
     toggleDeviceGroup: () -> Unit,
     onKeyEvent: (keyEvent: KeyEvent) -> Boolean,
@@ -197,6 +203,7 @@ internal fun ControllerDialog(
                 onVolumeChange = onVolumeChange,
             )
         },
+        shape = shape,
     )
 }
 
