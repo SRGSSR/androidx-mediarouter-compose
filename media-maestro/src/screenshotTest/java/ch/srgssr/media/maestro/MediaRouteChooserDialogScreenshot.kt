@@ -5,8 +5,11 @@
 
 package ch.srgssr.media.maestro
 
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.mediarouter.media.ScreenshotMediaRouter
 import ch.srgssr.media.maestro.MediaRouteChooserDialogViewModel.ChooserState
 
@@ -19,6 +22,7 @@ class MediaRouteChooserDialogScreenshot {
                 routes = emptyList(),
                 state = ChooserState.FindingDevices,
                 title = null,
+                shape = AlertDialogDefaults.shape,
                 onDismissRequest = {},
             )
         }
@@ -32,6 +36,7 @@ class MediaRouteChooserDialogScreenshot {
                 routes = emptyList(),
                 state = ChooserState.NoDevicesNoWifiHint,
                 title = null,
+                shape = AlertDialogDefaults.shape,
                 onDismissRequest = {},
             )
         }
@@ -45,6 +50,7 @@ class MediaRouteChooserDialogScreenshot {
                 routes = emptyList(),
                 state = ChooserState.NoRoutes,
                 title = null,
+                shape = AlertDialogDefaults.shape,
                 onDismissRequest = {},
             )
         }
@@ -60,6 +66,7 @@ class MediaRouteChooserDialogScreenshot {
                 routes = router.routes,
                 state = ChooserState.ShowingRoutes,
                 title = null,
+                shape = AlertDialogDefaults.shape,
                 onDismissRequest = {},
             )
         }
@@ -67,12 +74,13 @@ class MediaRouteChooserDialogScreenshot {
 
     @Composable
     @ScreenshotPreviews
-    private fun FindingDevicesCustomTitlePreview() {
+    private fun FindingDevicesCustomStylePreview() {
         ScreenshotTheme {
             ChooserDialog(
                 routes = emptyList(),
                 state = ChooserState.FindingDevices,
                 title = "Custom title",
+                shape = CutCornerShape(32.dp),
                 onDismissRequest = {},
             )
         }
@@ -80,12 +88,13 @@ class MediaRouteChooserDialogScreenshot {
 
     @Composable
     @ScreenshotPreviews
-    private fun NoDevicesNoWifiHintCustomTitlePreview() {
+    private fun NoDevicesNoWifiHintCustomStylePreview() {
         ScreenshotTheme {
             ChooserDialog(
                 routes = emptyList(),
                 state = ChooserState.NoDevicesNoWifiHint,
                 title = "Custom title",
+                shape = CutCornerShape(32.dp),
                 onDismissRequest = {},
             )
         }
@@ -93,12 +102,13 @@ class MediaRouteChooserDialogScreenshot {
 
     @Composable
     @ScreenshotPreviews
-    private fun NoRoutesCustomTitlePreview() {
+    private fun NoRoutesCustomStylePreview() {
         ScreenshotTheme {
             ChooserDialog(
                 routes = emptyList(),
                 state = ChooserState.NoRoutes,
                 title = "Custom title",
+                shape = CutCornerShape(32.dp),
                 onDismissRequest = {},
             )
         }
@@ -106,7 +116,7 @@ class MediaRouteChooserDialogScreenshot {
 
     @Composable
     @ScreenshotPreviews
-    private fun ShowingRoutesCustomTitlePreview() {
+    private fun ShowingRoutesCustomStylePreview() {
         val router = ScreenshotMediaRouter(LocalContext.current)
 
         ScreenshotTheme {
@@ -114,6 +124,7 @@ class MediaRouteChooserDialogScreenshot {
                 routes = router.routes,
                 state = ChooserState.ShowingRoutes,
                 title = "Custom title",
+                shape = CutCornerShape(32.dp),
                 onDismissRequest = {},
             )
         }

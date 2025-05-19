@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
@@ -29,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -58,6 +60,7 @@ import ch.srgssr.media.maestro.MediaRouteChooserDialogViewModel.ChooserState
  * using the media route chooser dialog.
  * @param modifier The [Modifier] to be applied to this dialog.
  * @param title The title of the dialog. If `null`, it will be defined based on the chooser state.
+ * @param shape The shape of the dialog.
  * @param onDismissRequest The action to perform when this dialog is dismissed.
  *
  * @see MediaRouteButton
@@ -67,6 +70,7 @@ public fun MediaRouteChooserDialog(
     routeSelector: MediaRouteSelector,
     modifier: Modifier = Modifier,
     title: String? = null,
+    shape: Shape = AlertDialogDefaults.shape,
     onDismissRequest: () -> Unit,
 ) {
     val viewModel = viewModel<MediaRouteChooserDialogViewModel>(
@@ -88,6 +92,7 @@ public fun MediaRouteChooserDialog(
         state = chooserState,
         title = title,
         modifier = modifier,
+        shape = shape,
         onDismissRequest = viewModel::hideDialog,
     )
 }
@@ -99,6 +104,7 @@ internal fun ChooserDialog(
     state: ChooserState,
     title: String?,
     modifier: Modifier = Modifier,
+    shape: Shape,
     onDismissRequest: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -132,6 +138,7 @@ internal fun ChooserDialog(
                 )
             }
         },
+        shape = shape,
     )
 }
 
@@ -298,6 +305,7 @@ private fun ChooserDialogFindingDevicesPreview() {
             routes = emptyList(),
             state = ChooserState.FindingDevices,
             title = null,
+            shape = AlertDialogDefaults.shape,
             onDismissRequest = {},
         )
     }
@@ -311,6 +319,7 @@ private fun ChooserDialogNoDevicesNoWifiHintPreview() {
             routes = emptyList(),
             state = ChooserState.NoDevicesNoWifiHint,
             title = null,
+            shape = AlertDialogDefaults.shape,
             onDismissRequest = {},
         )
     }
@@ -324,6 +333,7 @@ private fun ChooserDialogNoRoutesPreview() {
             routes = emptyList(),
             state = ChooserState.NoRoutes,
             title = null,
+            shape = AlertDialogDefaults.shape,
             onDismissRequest = {},
         )
     }
@@ -337,6 +347,7 @@ private fun ChooserDialogShowingRoutesPreview() {
             routes = emptyList(),
             state = ChooserState.ShowingRoutes,
             title = null,
+            shape = AlertDialogDefaults.shape,
             onDismissRequest = {},
         )
     }
