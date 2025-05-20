@@ -6,8 +6,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "\\.java-version$"
+      "managerFilePatterns": [
+        "/\\.java-version$/"
       ],
       "matchStrings": [
         "(?<currentValue>.*)\\n"
